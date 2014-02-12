@@ -36,7 +36,7 @@
         </license>
     </licenses>
     <scm>
-        <url>https://github.com/paginationspring/pagination/</url>
+        <url>git@github.com:paginationspring/pagination.git</url>
         <connection>scm:git:git@github.com:paginationspring/pagination.git</connection>
         <developerConnection>scm:git:git@github.com:paginationspring/pagination.git</developerConnection>
     </scm>
@@ -110,6 +110,17 @@
         </dependency>
     </dependencies>
     <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.1</version>
+                <configuration>
+                    <keyname>BDA1DB82</keyname>
+                    <homedir>C:\Users\sllau\AppData\Roaming\gnupg</homedir>
+                </configuration>
+            </plugin>
+        </plugins>
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -139,7 +150,11 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <version>1.4</version>
+                        <version>1.1</version>
+                        <configuration>
+                            <keyname>BDA1DB82</keyname>
+                            <homedir>C:\Users\sllau\AppData\Roaming\gnupg</homedir>
+                        </configuration>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>
