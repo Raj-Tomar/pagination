@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Spring 1</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <style type="text/css">
+table.sltable {
+  font-size:11px;
+  color:#333333;
+  border-width: 1px;
+  border-color: #666666;
+  border-collapse: collapse;
+}
+table.sltable  th {
+  border-width: 1px;
+  padding: 8px;
+  border-style: solid;
+  border-color: #666666;
+  background-color: #dedede;
+}
+table.sltable td {
+  border-width: 1px;
+  padding: 8px;
+  border-style: solid;
+  border-color: #666666;
+}
+.prettyprint ol.linenums > li { 
+  list-style-type: decimal;
+}
+.prettyprint ol.linenums > li.L0,li.L1,li.L2,li.L3,li.L5,li.L6,li.L7,li.L8  {
+   background: #fff; 
+}
+
+pre.prettyprint {
+  font-size:11px;
+  background-color: #F8F8F8;
+}
+    </style>
+  </head>
+<body>
+<div style="width:970px;font:normal normal 100% 'Trebuchet MS',Trebuchet,Verdana,Sans-Serif;">
+
+<!-- 
+#####################################
+START of blog post 
+#####################################
+-->
+
+<h3>
+Introduction</h3>
+In a web application, Pagination, or Page Navigation, is a technique often used to display a large set of data. For a large hundred or thousand or even million of records, it would cause large performance problem to return all of that data in a single page. Pagination is used to present data to user one page at a time, typically 25 to 100 records per page. Moreover, keyword search, advance search option and column sorting are features often needed together with Pagination.<br />
+<br />
+This article will focus on an implementation of Pagination with Spring Framework that will provide full features of pagination, search option and column sorting.<br />
+<h3>Features of Pagination Framework</h3>
+Pagination Framework includes the following features:
+<ul>
+<li>Fine-grained options to cater varies pagination requirement.</li>
+<li>Customizable search options</li>
+<li>Column sorting by one or more db columns</li>
+<li>Customizable look and feel</li>
+<li>Compatible with Spring Framework version 1.x, 2.x, 3.x, 4.x </li>
+<li>Support JSF 1 and JSF 2</li>
+<li>Support JSP 2.0 and JSP 2.1 and JSP 2.2</li>
+<li>Support JDK 1.5, 1.6, 1.7</li>
+<li>Support Object Relational Mapping (ORM) Data Access including Hibernate, JPA, JDBC</li>
+<li>Search engine friendly URL - to make pagination links shorter and SEO friendly.</li>
+<li>AJAX pagination - make pagination links update only part of our web page, without reloading the whole page. (JSP only)</li>
+<li>Remember search result - recall previous search results after leaving for other pages.</li>
+<li>Override ORM Data Access by writing an implementation of Data Access of your choice (e.g. JDO, iBATIS SQL Maps, etc.)</li>
+<li>Architecturally correct (and beautiful) implementation with Business Object, Controller, Service, Data Access Object (DAO) and View layers well defined.</li>
+</ul>
+
+<h3>Technologies</h3>
+In this example, the following technologies are needed:
+<br />
+<ul>
+<li>Pagination Framework for Spring</li>
+<li>Spring Framework 1.2.6</li>
+<li>Hibernate as JPA provider</li>
+<li>JSP 2.0 and JSTL 1.1.2 (J2EE 4)</li>
+<li>JDK 1.5</li>
+</ul>
+<h3>
+Approach</h3>
+This article will use a top-down approach, starting with user interface (View), working the way down to Controller, then to Service and Repository (Model / DAO) layer.<br />
+<br />
+Suppose our Project Manager has gathered user requirements for a Mail Client System and an application prototype produced:
+<br /><br />
+<a href="http://2.bp.blogspot.com/-0NKEUCbGd18/Uvz8km5E_nI/AAAAAAAAABk/wh3Z3rq09iw/s1600/screen-spring1.png" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" src="http://2.bp.blogspot.com/-0NKEUCbGd18/Uvz8km5E_nI/AAAAAAAAABk/wh3Z3rq09iw/s1600/screen-spring1.png" height="430" width="640" /></a>
+<br />
+Top of the page will have a few search options for users to search through his mails.  On the middle left there are 2 action buttons for users to delete or mark mail as spam. On the middle right side total number of emails and the corresponding page number will be shown. The mail records are displayed to user one page at a time, 10 mails per page. Columns can be sorted by Subject, Received Date, etc. And finally, pagination component is rendered for user to change page. The left most part is for go to the first page; follow by link to go to previous page; follow by numeric items to go to a specific page; follow by next page and last page link.
+<br />
+<br />
+In order to implement pagination, we will need to create the following files:<br />
+<br />
+<table class="sltable">
+<tbody>
+<tr>
+<th>Object</th>
+<th>Extends</th>
+<th>Description</th>
+</tr>
+<tr>
+<td>BoMailMessage</td>
+<td>BoPaginationResultRow</td>
+<td>Business Object for storing search options</td>
+</tr>
+<tr>
+<td>BoMailSearchParam</td>
+<td>BoPaginationParam</td>
+<td>Business Object for storing one row of data</td>
+</tr>
+<tr>
+<td>MailClientController</td>
+<td>PaginationControllerAbstract</td>
+<td>Controller to interpret user input and set data into model</td>
+</tr>
+<tr>
+<td>MailClientService</td>
+<td>PaginationServiceAbstract</td>
+<td>Service layer for business logic. Raw data from JPA is mapped to Business Object</td>
+</tr>
+<tr>
+<td>MailClientDao</td>
+<td>PaginationDaoDbEntityManagerAbstract</td>
+<td>Data Access Object (DAO) for Database query</td>
+</tr>
+<tr>
+<td>inbox.jsp</td>
+<td>http://pagination/pagination-spring3.tld</td>
+<td>User Interface presentation</td>
+</tr>
+<tr>
+<td>PgMailMessage
+<br />
+PgPerson
+</td>
+<td>Nil</td>
+<td>Database mapping object</td>
+</tr>
+</tbody></table>
+<h3>Maven Setup</h3>
+
+Artifact "pagination" is the our pagination implementation.
+<br/><br/>
+Artifact "pagination-taglibs" is the our pagination tag library.
+<br/><br/>
+
+If you have a single WAR project, add the following dependency to your pom.xml:
+<pre class="prettyprint linenums">
+&lt;dependency&gt;
+    &lt;groupId&gt;com.github.paginationspring&lt;/groupId&gt;
+    &lt;artifactId&gt;pagination&lt;/artifactId&gt;
+    &lt;version&gt;1.0.2&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;com.github.paginationspring&lt;/groupId&gt;
+    &lt;artifactId&gt;pagination-taglibs&lt;/artifactId&gt;
+    &lt;version&gt;1.0.2&lt;/version&gt;
+&lt;/dependency&gt;
+</pre>
+Notice that pagination and pagination-taglibs do not have maven dependency on spring framework (scope=optional). Therefore, we will need to add spring framework dependencies to pom.xml as well.
+<br/><br/>
+If you have a EAR project with WAR module inside, add "pagination" dependency to yourEAR/pom.xml and "pagination-taglibs" dependency to yourWAR/pom.xml.
+
+<h3>Non-Maven Setup</h3>
+You can simply download the two jar files and put it into your project.
+<br/><br/>
+If you have a WAR project, put both pagination-1.0.2.jar and pagination-taglibs-1.0.2.jar into your yourWAR/WEB-INF/lib directory.
+<br/><br/>
+If you have a EAR project, put pagination-1.0.2.jar into your-EAR/lib directory and put pagination-taglibs-1.0.2.jar into your-EAR/yourWAR/WEB-INF/lib directory.
+
+<h3>User Interface (JSP)</h3>
+To create a JSP page for Mail Client System, we will use Pagination Framework for Spring. Pagination Framework contains a predefined JSP Tag Library for generating our pagination page. We will also need spring tag library and spring form tag library, together with standard JSTL core library.<br />
+<pre class="prettyprint">
+&lt;%@taglib prefix=&quot;spring&quot; uri=&quot;http://www.springframework.org/tags&quot;%&gt;
+&lt;%@taglib prefix=&quot;c&quot; uri=&quot;http://java.sun.com/jsp/jstl/core&quot; %&gt;
+&lt;%@taglib prefix=&quot;fmt&quot; uri=&quot;http://java.sun.com/jsp/jstl/fmt&quot; %&gt;
+&lt;%@taglib prefix=&quot;pg&quot; uri=&quot;http://pagination/pagination-spring3.tld&quot; %&gt;
+</pre>
+Next, we will need html form tag for search option submission. We will use spring form tag to create our form. With this form tag, we will expose a business object pparam (short for page parameters) using attribute modelAttribute. The action attribute is set to the page url, which is defined in another business object paginationResult. Business objects (BO) pparam and paginationResult formed the 2 (and only 2) POJO objects that we will use to present our pagination data. 
+<pre class="prettyprint">
+&lt;c:url value=&quot;${paginationResult.pageLink}&quot; var=&quot;pageLink&quot;/&gt;
+&lt;form id=&quot;pgform&quot; action=&quot;${pageLink}&quot; method=&quot;post&quot;&gt;.
+.
+.
+&lt;/form&gt;
+</pre>
+Next, use Pagination Framework tag library to create our pagination search and data content. Pagination tag library has tag-file name "pagination" (&lt;pg:pagination&gt;) to help generate the pagination content. pg:pagination has 6 attributes: pparam, paginationResult, searchContent, controlButton, columnsContent and contentAfterLastRow. For pparam and paginationResult, I will explain them in more details in Business Object section below. Now let’s first look at how we use &lt;pg:pagination&gt; tag:
+
+<pre class="prettyprint linenums">
+&lt;pg:pagination pparam=&quot;${pparam}&quot; paginationResult=&quot;${paginationResult}&quot;&gt;
+  &lt;jsp:attribute name=&quot;searchContent&quot;&gt;
+      &lt;table class=&quot;searchtable&quot;&gt;
+          &lt;tr&gt;
+              &lt;td class=&quot;caption&quot; style=&quot;width:200px;&quot;&gt;From:&lt;/td&gt;
+              &lt;td style=&quot;width:250px;&quot;&gt;&lt;input name=&quot;from&quot; value=&quot;${pparam.from}&quot; style=&quot;width:100px;&quot;/&gt;&lt;/td&gt;
+              &lt;td class=&quot;caption&quot; style=&quot;width:150px;&quot;&gt;Subject:&lt;/td&gt;
+              &lt;td style=&quot;width:200px;&quot;&gt;&lt;input name=&quot;subject&quot; value=&quot;${pparam.subject}&quot; style=&quot;width:200px;&quot;/&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+              &lt;td class=&quot;caption&quot; style=&quot;width:200px;&quot;&gt;Date Received:&lt;/td&gt;
+              &lt;td style=&quot;width:250px;&quot;&gt;
+                  &lt;span style=&quot;float:left;&quot;&gt;
+                      &lt;input name=&quot;fromDate&quot; value=&quot;${pparam.fromDate}&quot; style=&quot;width:100px;&quot;/&gt;&lt;br/&gt;&lt;small&gt;DD/MM/YYYY&lt;/small&gt;
+                  &lt;/span&gt;
+                  &lt;span style=&quot;float:left;padding-left:10px;padding-right:10px;&quot;&gt; TO &lt;/span&gt;
+                  &lt;span style=&quot;float:left;&quot;&gt;
+                      &lt;input name=&quot;toDate&quot; value=&quot;${pparam.toDate}&quot; style=&quot;width:100px;&quot;/&gt;&lt;br/&gt;&lt;small&gt;DD/MM/YYYY&lt;/small&gt;
+                  &lt;/span&gt;
+              &lt;/td&gt;
+              &lt;td class=&quot;caption&quot; style=&quot;width:150px;&quot;&gt;Status:&lt;/td&gt;
+              &lt;td style=&quot;width:200px;vertical-align:top;&quot;&gt;
+                  &lt;input id=&quot;status1&quot; type=&quot;radio&quot; value=&quot;A&quot; name=&quot;status&quot; &lt;c:if test=&quot;${pparam.status==&#39;A&#39;}&quot;&gt;checked&lt;/c:if&gt;/&gt;All
+                  &lt;input id=&quot;status2&quot; type=&quot;radio&quot; value=&quot;U&quot; name=&quot;status&quot; &lt;c:if test=&quot;${pparam.status==&#39;U&#39;}&quot;&gt;checked&lt;/c:if&gt;/&gt;Unread
+                  &lt;input id=&quot;status3&quot; type=&quot;radio&quot; value=&quot;R&quot; name=&quot;status&quot; &lt;c:if test=&quot;${pparam.status==&#39;R&#39;}&quot;&gt;checked&lt;/c:if&gt;/&gt;Read
+              &lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+              &lt;td style=&quot;text-align:center;padding-top:20px;&quot; colspan=&quot;4&quot;&gt;
+                  &lt;span class=&quot;button&quot;&gt;
+                    &lt;button id=&quot;searchButton&quot; name=&quot;buttonAction&quot; value=&quot;searchButton&quot; type=&quot;submit&quot; class=&quot;button&quot;&gt;Search&lt;/button&gt;
+                  &lt;/span&gt;
+                  &lt;span style=&quot;padding-left:10px;&quot;&gt;&lt;/span&gt;
+                  &lt;span class=&quot;button&quot;&gt;
+                    &lt;button id=&quot;clearButton&quot; name=&quot;buttonAction&quot; value=&quot;clearButton&quot; type=&quot;submit&quot; class=&quot;button&quot;&gt;Clear&lt;/button&gt;
+                  &lt;/span&gt;
+              &lt;/td&gt;
+          &lt;/tr&gt;
+      &lt;/table&gt;
+  &lt;/jsp:attribute&gt;
+  &lt;jsp:attribute name=&quot;controlButton&quot;&gt;
+      &lt;div style=&quot;padding-top:20px;&quot;&gt;
+          &lt;span class=&quot;button&quot;&gt;
+            &lt;button id=&quot;deleteButton&quot; name=&quot;buttonAction&quot; value=&quot;deleteButton&quot; type=&quot;submit&quot; class=&quot;button&quot;&gt;Delete&lt;/button&gt;
+          &lt;/span&gt;
+          &lt;span class=&quot;button&quot;&gt;
+            &lt;button id=&quot;markSpamButton&quot; name=&quot;buttonAction&quot; value=&quot;markSpamButton&quot; type=&quot;submit&quot; class=&quot;button&quot;&gt;Mark as Spam&lt;/button&gt;
+          &lt;/span&gt;
+      &lt;/div&gt;
+  &lt;/jsp:attribute&gt;
+  &lt;jsp:attribute name=&quot;columnsContent&quot;&gt;
+      &lt;td class=&quot;cell&quot;&gt;
+        &lt;span&gt;
+          &lt;c:out value=&quot;${bo.isRead}&quot;/&gt;
+        &lt;/span&gt;
+      &lt;/td&gt;
+      &lt;td class=&quot;cell&quot;&gt;
+        &lt;span style=&quot;white-space:nowrap;&quot;&gt;
+          &lt;c:out value=&quot;${bo.fromName}&quot;/&gt;
+        &lt;/span&gt;
+      &lt;/td&gt;
+      &lt;td class=&quot;cell&quot; style=&quot;width:100%;&quot;&gt;
+        &lt;span&gt;
+          &lt;c:out value=&quot;${bo.subject}&quot;/&gt;
+        &lt;/span&gt;
+      &lt;/td&gt;
+      &lt;td class=&quot;cell&quot;&gt;
+        &lt;span style=&quot;white-space:nowrap;&quot;&gt;
+          &lt;fmt:formatDate value=&quot;${bo.sendDate}&quot; pattern=&quot;d MMM yyyy HH:mm:ss&quot;/&gt;
+        &lt;/span&gt;
+      &lt;/td&gt;
+      &lt;td class=&quot;cell&quot;&gt;
+        &lt;span&gt;
+          &lt;c:out value=&quot;${bo.isSpam}&quot;/&gt;
+        &lt;/span&gt;
+      &lt;/td&gt;
+  &lt;/jsp:attribute&gt;
+&lt;/pg:pagination&gt;
+</pre>
+<ul>
+<li>searchContent, controlButton, columnsContent and contentAfterLastRow are all jsp fragments. </li>
+<li>searchContent contains the search options; form objects (input, radiobutton, button, etc.) use spring form tag library with attribute "path" set to variable in pparam (remember we set modelAttribute="pparam" in our form). For example, &lt;form:input path="fromDate"&gt; will reference pparam.fromDate variable.</li>
+<li>controlButton contains 2 buttons for delete and mark as spam action.</li>
+<li>columnsContent defines how we present the search result, i.e. each row of data (each mail), to our users. Here an object instance named "bo" is binded to this jsp fragment and can be used to load data from our BoMailMessage object (see below).</li>
+<li>contentAfterLastRow should defines an area below the last row of data. We didn't need it in this example.</li>
+</ul>
+<h3>Business Object (BO)</h3>
+<b>pparam</b>
+Page Parameter (pparam) is a business-object representing the search options. We declare this object in <b>com.github.paginationspring.example.spring1.bo.BoMailSearchParam</b>. This object extends <b>com.github.paginationspring.bo.BoPaginationParam</b> (POJO) and added 5 fields from our search options:
+<pre class="prettyprint linenums">
+public class BoMailSearchParam extends BoPaginationParam {
+    private String from;
+    private String subject;
+    private String fromDate;
+    private String toDate;
+    private String status;
+</pre>
+
+pparam will keep value of search option in this pojo and use it in our pagination framework.
+
+<b>paginationResult</b>
+Pagination Result is a business-object representing results of our search. It contains one page of data (as seen by user on his current page), and it also contains some settings like record-per-page, default sorting order, etc. Each row of data (in our case, each mail) is represented by declaring object <b>com.github.paginationspring.example.spring1.bo.BoMailMessage</b>. This object extends <b>com.github.paginationspring.bo.BoPaginationResultRow</b> (POJO) and added fields for display our search results:
+
+<pre class="prettyprint linenums">
+public class BoMailMessage extends BoPaginationResultRow<Integer> {
+
+    private int messageId;
+    private String fromName;
+    private String fromEmail;
+    private String toName;
+    private String toEmail;
+    private String subject;
+    private String message;
+    private Date sendDate;
+    private String isSpam;
+    private String isRead;    
+
+    public Integer getPk() {
+        return messageId;
+    }
+</pre>
+
+Notice the type inference of &lt;Integer&gt;, this Integer represents the object type of the unique key of this row of data (i.e. messageId).
+
+<h3>Controller</h3>
+
+Controller will define settings of our pagination page, map requests URLs into a handler method and pass business logic to service layer. First we define our controller by extend a controller base PaginationControllerAbstract&lt;BoMailSearchParam&gt; as shown here:
+
+<pre class="prettyprint linenums">
+public class MailClientController extends PaginationControllerAbstract implements Controller {
+</pre>
+
+In our constructor, we will define some settings for our pagination results. 
+<pre class="prettyprint linenums">
+public MailClientController() {
+    setOptionDisplayCheckbox(true);
+    setOptionDisplaySerialNo(true);
+    setOptionWidth(950);
+    setDefaultRecordPerPage(10);
+    setDefaultSortName("Received");
+    setDefaultSortAscDesc("d");
+    setPageLink("/org/pagination/example/spring1/inbox.do");
+    setRewriteUrl(true);
+}
+</pre>
+<table class="sltable">
+<tr>
+<td>setOptionDisplayCheckbox </td>
+<td>whether or not the left side checkbox should be displayed</td>
+</tr>
+<tr>
+<td>setOptionDisplaySerialNo </td>
+<td>whether or not the left side serial no. should be displayed</td>
+</tr>
+<tr>
+<td>setOptionWidth </td>
+<td>the width of our search results, in pixels</td>
+</tr>
+<tr>
+<td>setDefaultRecordPerPage </td>
+<td>default record per page</td>
+</tr>
+<tr>
+<td>setDefaultSortName </td>
+<td>default sorting column</td>
+</tr>
+<tr>
+<td>setDefaultSortAscDesc </td>
+<td>default sorting order, value "a" is ascending and "d" is decending.</td>
+</tr>
+<tr>
+<td>setPageLink </td>
+<td>url of your pagination page</td>
+</tr>
+<tr>
+<td>setRewriteUrl </td>
+<td>to give you nicer, SEO (Search Engine Optimization) friendly, urls. For example, by setting setRewriteUrl to true, URL mailclient/inbox.do?sortAscDesc=a&sortName=From becomes mailclient/sort/From/a/inbox.do</td>
+</tr>
+</table>
+Next, we will need to map request URLs into a handler method. We do this by using the handleRequest methods and MailClientControllerUtils:
+
+<pre class="prettyprint linenums">
+public ModelAndView handleRequest(HttpServletRequest request,
+            HttpServletResponse response) throws Exception {
+    BoMailSearchParam pparam = new BoMailSearchParam();
+    // default setter on parent bean, required
+    
+    log.debug("request.getRequestURI()="+request.getRequestURI());
+    String enc = response.getCharacterEncoding();
+    pparam.setResultIndex(MailClientControllerUtils._retrieveResultIndex(request.getRequestURI(), enc));
+    pparam.setRecordPerPage(request.getParameter("recordPerPage"));
+    pparam.setSortName(MailClientControllerUtils._retrieveSortName(request.getRequestURI(), enc));
+    pparam.setSortAscDesc(MailClientControllerUtils._retrieveSortAscDesc(request.getRequestURI(), enc));
+    pparam.setOrderColumns(request.getParameter("orderColumns"));
+    pparam.setOrderDirections(request.getParameter("orderDirections"));
+    pparam.setSelectedIds(request.getParameterValues("selectedIds"));
+  
+    // customized setter on Business Object (bo) bean, subject to customization
+    pparam.setFrom(request.getParameter("from"));
+    pparam.setSubject(request.getParameter("subject"));
+    pparam.setFromDate(request.getParameter("fromDate"));
+    pparam.setToDate(request.getParameter("toDate"));
+    pparam.setStatus(request.getParameter("status"));
+  
+    Map map = assignModel(pparam, request.getParameter(BUTTON_ACTION));
+
+    ModelAndView mav = new ModelAndView("/org/pagination/example/spring1/view/inbox");
+    mav.addAllObjects(map);
+    return mav;        
+}
+</pre>
+<pre class="prettyprint linenums">
+public class MailClientControllerUtils {
+  private static Logger log = Logger.getLogger(MailClientControllerUtils.class);
+
+  private static final Pattern URL_PATTERN_1 = Pattern.compile("^(.*)/org/pagination/example/spring1/inbox.do$");
+    private static final Pattern URL_PATTERN_2 = Pattern.compile("^(.*)/org/pagination/example/spring1/([^/]+)/inbox.do");
+    private static final Pattern URL_PATTERN_3 = Pattern.compile("^(.*)/org/pagination/example/spring1/sort/([^/]+)/([^/]+)/inbox.do");
+    private static final Pattern URL_PATTERN_4 = Pattern.compile("^(.*)/org/pagination/example/spring1/([^/]+)/sort/([^/]+)/([^/]+)/inbox.do");
+
+  protected static String _retrieveResultIndex(String uri, String enc) throws UnsupportedEncodingException {
+    Matcher matcher = null;
+    matcher = URL_PATTERN_1.matcher(uri);
+    if ( matcher.find() ) return null;
+    matcher = URL_PATTERN_2.matcher(uri);
+    if ( matcher.find() ) return URLDecoder.decode(matcher.group(2), enc);
+    matcher = URL_PATTERN_3.matcher(uri);
+    if ( matcher.find() ) return null;
+    matcher = URL_PATTERN_4.matcher(uri);
+    if ( matcher.find() ) return URLDecoder.decode(matcher.group(2), enc);
+    return null;
+  }
+  protected static String _retrieveSortName(String uri, String enc) throws UnsupportedEncodingException {
+    Matcher matcher = null;
+    matcher = URL_PATTERN_1.matcher(uri);
+    if ( matcher.find() ) return null;
+    matcher = URL_PATTERN_2.matcher(uri);
+    if ( matcher.find() ) return null;
+    matcher = URL_PATTERN_3.matcher(uri);
+    if ( matcher.find() ) return URLDecoder.decode(matcher.group(2), enc);
+    matcher = URL_PATTERN_4.matcher(uri);
+    if ( matcher.find() ) return URLDecoder.decode(matcher.group(3), enc);
+    return null;
+  }
+  protected static String _retrieveSortAscDesc(String uri, String enc) throws UnsupportedEncodingException {
+    Matcher matcher = null;
+    matcher = URL_PATTERN_1.matcher(uri);
+    if ( matcher.find() ) return null;
+    matcher = URL_PATTERN_2.matcher(uri);
+    if ( matcher.find() ) return null;
+    matcher = URL_PATTERN_3.matcher(uri);
+    if ( matcher.find() ) return URLDecoder.decode(matcher.group(3), enc);
+    matcher = URL_PATTERN_4.matcher(uri);
+    if ( matcher.find() ) return URLDecoder.decode(matcher.group(4), enc);
+    return null;
+  }
+</pre>
+
+In MailClientControllerUtils, you will notice URL1, URL2, URL 3 and URL 4 variables. There constant variables predefined some url patterns to be used when we set option setRewriteUrl to true. 
+<br/><br/>
+In our method declaration, the return type String is logical view name and in our case, the jsp file name. 
+<br/><br/>
+Inside this method, we will call a parent method assignModel from our Pagination Framework, set the returned objects into our model arguments and result the jsp url. The assignModel method will call a service bean, which we will be injecting into our controller. The service bean implements our business logic in our pagination, which we will explain in the next section.
+<pre class="prettyprint linenums">
+  Map map = assignModel(pparam, request.getParameter(BUTTON_ACTION));
+  
+  ModelAndView mav = new ModelAndView("/org/pagination/example/spring1/view/inbox");
+  mav.addAllObjects(map);
+  return mav;        
+</pre>
+
+We wired the service bean into this controller by using applicationContext.xml:
+<pre class="prettyprint linenums">
+&lt;bean id=&quot;mailClientController&quot; class=&quot;com.github.paginationspring.example.spring1.controller.MailClientController&quot;&gt;
+    &lt;property name=&quot;paginationService&quot;&gt;
+        &lt;ref bean=&quot;mailClientService&quot; /&gt;
+    &lt;/property&gt;
+&lt;/bean&gt;
+</pre>
+
+<h3>Service</h3>
+Service bean serves two purposes: 1) map database raw data into our business object and 2) define column properties for result data.
+<br/><br/>
+First, we define our service bean by extend a service base PaginationServiceAbstract as shown here:
+
+<pre class="prettyprint linenums">
+public class MailClientService extends PaginationServiceAbstract {
+</pre>
+
+To map database raw data into our business object, override assignDataToBo method:
+<pre class="prettyprint linenums">
+protected BoPaginationResultRow assignDataToBo(Object arg0)
+            throws Exception {
+    PgMailMessage en = (PgMailMessage) arg0;
+
+    BoMailMessage bo = new BoMailMessage();
+    bo.setMessageId(en.getMessageId());
+    bo.setFromEmail(en.getFromPgPerson().getEmail());
+    bo.setFromName(en.getFromPgPerson().getName());
+    bo.setToEmail(en.getToPgPerson().getEmail());
+    bo.setToName(en.getToPgPerson().getName());
+    bo.setSubject(en.getSubject());
+    bo.setSendDate(en.getSendDate());
+    bo.setIsSpam(en.getIsSpam());
+    bo.setIsRead(en.getIsRead());
+    return bo;
+}
+</pre>
+To define column properties, override assignColumnsDefinition method:
+<pre class="prettyprint linenums">
+public void assignColumnsDefinition(List columns) throws Exception {
+    log.debug("setting columns def.");
+    BoPaginationColumn col = null;
+    col = new BoPaginationColumn();
+    col.setColumnName("Is Read");
+    col.setOrderColumns("a.isRead");
+    col.setOrderDirections("asc");
+    columns.add(col);
+    col = new BoPaginationColumn();
+    col.setColumnName("From");
+    col.setOrderColumns("b.name");
+    col.setOrderDirections("asc");
+    col.setWidth(new Integer(150));
+    columns.add(col);
+    col = new BoPaginationColumn();
+    col.setColumnName("Subject");
+    col.setOrderColumns("a.subject");
+    col.setOrderDirections("asc");
+    columns.add(col);
+    col = new BoPaginationColumn();
+    col.setColumnName("Received");
+    col.setOrderColumns("a.sendDate");
+    col.setOrderDirections("desc");
+    col.setWidth(new Integer(150));
+    columns.add(col);
+    col = new BoPaginationColumn();
+    col.setColumnName("Spam Indicator");
+    col.setWidth(new Integer(80));
+    columns.add(col);
+}
+</pre>
+
+We create a new BoPaginationColumn bean for each column. BoPaginationColumn has 4 variables: columnName, orderColumns, orderDirections and width. The columnName is the name of column to be displayed to user. The orderColumns is a query string to be added to our JPA query "order by" clause. The orderDirections has value "asc" or "desc" for ascending or descending shorting of the column. For sorting across multiple fields, use comma to separate between required fields (as shown in "From" column above). The width variable defines the column width in pixels.
+<br/><br/>
+At last, inject our DAO bean with applicationContext.xml:
+<pre class="prettyprint linenums">
+&lt;bean id=&quot;mailClientService&quot; class=&quot;com.github.paginationspring.example.spring1.service.MailClientService&quot;&gt;
+    &lt;property name=&quot;paginationDao&quot;&gt;
+        &lt;ref bean=&quot;mailClientDao&quot; /&gt;
+    &lt;/property&gt;
+&lt;/bean&gt;
+</pre>
+
+<h3>Data Access Layer (DAO)</h3>
+DAO bean load the raw data from database using JPA entity manager. First, we define our DAO by extends PaginationDaoDbEntityManagerAbstract from Pagination Framework:
+
+<pre class="prettyprint linenums">
+public class MailClientDao extends PaginationDaoDbHibernateTemplateAbstract {
+</pre>
+PgMailMessage is the database entity bean and BoMailSearchParam is the incoming page parameters.
+<br/><br/>
+First, we will setup query to load data from database:
+
+<pre class="prettyprint linenums">
+private static final String EJBQL = "select distinct a, b " +
+        "from PgMailMessage a " +
+        "join a.fromPgPerson b " +
+        "join a.toPgPerson c " +
+        "where a.isSpam = 'N' ";
+    
+private static final String[] RESTRICTIONS = {
+    "c.name = :toCustomized",
+    "b.name = :from",
+    "lower(a.subject) LIKE :subjectCustomized",
+    "a.sendDate >= :sendDateFromCustomized",
+    "a.sendDate <= :sendDateToCustomized",
+    "a.isRead = :isReadCustomized"
+};
+
+public MailClientDao() {
+    this.ejbql = EJBQL;
+    this.restrictions = Arrays.asList(RESTRICTIONS);
+}
+</pre>
+Let's look at our query. We select distinct PgMailMessage (alias a) in order to pass this object to assignDataToBo method in Service bean. In order for the query to be able to sort by "From" field (see assignColumnsDefinition in Service bean), we need to select fromPgPerson (alias b) in our query. Moreover, we will define toPgPerson (alias c) and in where clause we restrict our query for non-spam email (isSpam=’N’).
+<br/><br/>
+Restrictions define our search options. There are 2 kinds of restrictions binding: 1) binding directly to variable in pparam (BoMailSearchParam) and 2) binding via customization.
+<br/><br/>
+The first restriction a.name=:from means that fromPgPerson.name are binding directly to variable "from" in pparam. Other restrictions are defined in binding in customizeRestrictions method:
+<pre class="prettyprint linenums">
+public void customizeRestrictions(Map queryParameters, BoPaginationParam arg1)
+            throws Exception {
+    BoMailSearchParam pparam = (BoMailSearchParam) arg1;
+    
+    queryParameters.put("toCustomized", "Christine Kendrick"); // in reality, this should be the login user id.
+    if ( StringUtils.isEmpty(pparam.getSubject()) ) {
+        queryParameters.put("subjectCustomized", null);
+    } else {
+        queryParameters.put("subjectCustomized", "%"+pparam.getSubject().toLowerCase()+"%");
+    }
+    if (  StringUtils.isEmpty(pparam.getFromDate()) ) {
+        queryParameters.put("sendDateFromCustomized", null);
+    } else {
+        queryParameters.put("sendDateFromCustomized", getDateStart(formatter.parse(pparam.getFromDate())));
+    }
+    if (  StringUtils.isEmpty(pparam.getToDate()) ) {
+        queryParameters.put("sendDateToCustomized", null);
+    } else {
+        queryParameters.put("sendDateToCustomized", getDateEnd(formatter.parse(pparam.getToDate())));
+    }
+    if ( "U".equals(pparam.getStatus() ) ) {
+        queryParameters.put("isReadCustomized", "N");
+    } else if ( "R".equals(pparam.getStatus()) ) {
+        queryParameters.put("isReadCustomized", "Y");
+    } else {
+        queryParameters.put("isReadCustomized", null);
+    }
+}
+</pre>
+In this customizeRestrictions method, toCustomized, subjectCustomized, sendDateFromCustomized, sendDateToCustomized and isReadCustomized is customized and then put into a map queryParameters. Our Pagination Framework will use this map to bind variables into our JPA query.
+<br/><br/>
+Finally, we need to inject hibernate template with applicationContext.xml
+<pre class="prettyprint linenums">
+&lt;bean id=&quot;mailClientDao&quot; class=&quot;com.github.paginationspring.example.spring1.dao.MailClientDao&quot;&gt;
+    &lt;property name=&quot;hibernateTemplate&quot;&gt;
+        &lt;ref bean=&quot;hibernateTemplate&quot; /&gt;
+    &lt;/property&gt;
+&lt;/bean&gt;
+</pre>
+
+<h3>Spring Framework Setup</h3>
+To setup spring framework, we setup spring MVC in web.xml as we normally would:
+<pre class="prettyprint linenums">
+&lt;context-param&gt;
+    &lt;param-name&gt;contextConfigLocation&lt;/param-name&gt;
+    &lt;param-value&gt;/WEB-INF/applicationContext.xml&lt;/param-value&gt;
+&lt;/context-param&gt;
+&lt;listener&gt;
+    &lt;listener-class&gt;org.springframework.web.context.ContextLoaderListener&lt;/listener-class&gt;
+&lt;/listener&gt;
+&lt;servlet&gt;
+    &lt;servlet-name&gt;dispatcher&lt;/servlet-name&gt;
+    &lt;servlet-class&gt;org.springframework.web.servlet.DispatcherServlet&lt;/servlet-class&gt;
+    &lt;load-on-startup&gt;2&lt;/load-on-startup&gt;
+&lt;/servlet&gt;
+&lt;servlet-mapping&gt;
+    &lt;servlet-name&gt;dispatcher&lt;/servlet-name&gt;
+    &lt;url-pattern&gt;*.do&lt;/url-pattern&gt;
+&lt;/servlet-mapping&gt;
+</pre>
+In dispatcher-servlet.xml, define the following for view resolver:
+
+<pre class="prettyprint linenums">
+&lt;bean id=&quot;handlerMapping&quot;
+    class=&quot;org.springframework.web.servlet.handler.SimpleUrlHandlerMapping&quot;&gt;
+    &lt;property name=&quot;mappings&quot;&gt;
+        &lt;props&gt;
+            &lt;prop key=&quot;/org/pagination/example/spring1/inbox.do&quot;&gt;mailClientController&lt;/prop&gt;
+            &lt;prop key=&quot;/org/pagination/example/spring1/*/inbox.do&quot;&gt;mailClientController&lt;/prop&gt;
+            &lt;prop key=&quot;/org/pagination/example/spring1/sort/*/*/inbox.do&quot;&gt;mailClientController&lt;/prop&gt;
+            &lt;prop key=&quot;/org/pagination/example/spring1/*/sort/*/*/inbox.do&quot;&gt;mailClientController&lt;/prop&gt;
+            &lt;prop key=&quot;/org/pagination/example/spring1/inbox2.do&quot;&gt;mailClientAjaxController&lt;/prop&gt;
+            &lt;prop key=&quot;/org/pagination/example/spring1/inbox2_ajax.do&quot;&gt;mailClientAjaxControllerDetails&lt;/prop&gt;
+        &lt;/props&gt;
+    &lt;/property&gt;
+&lt;/bean&gt;
+&lt;bean id=&quot;viewResolver&quot; class=&quot;org.springframework.web.servlet.view.InternalResourceViewResolver&quot;&gt;
+    &lt;property name=&quot;prefix&quot; value=&quot;/WEB-INF/jsp/&quot;/&gt;
+    &lt;property name=&quot;suffix&quot; value=&quot;.jsp&quot;/&gt;
+&lt;/bean&gt;
+</pre>
+
+<h3>Additional Features</h3>
+Additional features can be enabled in pagination framework are:
+<ul>
+  <li>Search engine friendly URL - to make pagination links shorter and SEO friendly.</li>
+  <li>AJAX pagination - make pagination links update only part of our web page, without reloading the whole page.</li>
+  <li>Remember search result - recall previous search results after leaving for other pages.</li>
+  <li>Override ORM Data Access by writing an implementation of Data Access of your choice (e.g. JDO, iBATIS SQL Maps, etc.)</li>
+</ul>
+See my other blog posts for details.
+
+<h3>Running our example</h3>
+
+Click "Download Zip" button on this page <a href="https://github.com/paginationspring/pagination-example-spring1" target="_blank">https://github.com/paginationspring/pagination-example-spring1</a>.
+<br/><br/>
+The zip file included full source code in this document. Make sure you have Maven and JDK installed. Open command prompt and type run.bat (for window OS) or ./run.sh (for linux OS). Choose your application server and wait around 30 seconds for the server to startup. After server started, go to url http://localhost:8080/pagination-example-spring1
+
+<h3>Help improve this document</h3>
+You can help improve this document by "fork" this repository <a href="https://github.com/paginationspring/pagination/tree/master/doc" target="_blank">https://github.com/paginationspring/pagination/tree/master/doc</a>.
+<br/><br/>
+After making changes to this document, you can submit a pull request and I will change this document accordingly.
+
+
+<!-- 
+#####################################
+END of blog post 
+#####################################
+-->
+</div>
+<script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js"></script>
+</body>
+</html>

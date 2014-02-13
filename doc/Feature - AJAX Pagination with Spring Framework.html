@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>AJAX</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <style type="text/css">
+table.sltable {
+  font-size:11px;
+  color:#333333;
+  border-width: 1px;
+  border-color: #666666;
+  border-collapse: collapse;
+}
+table.sltable  th {
+  border-width: 1px;
+  padding: 8px;
+  border-style: solid;
+  border-color: #666666;
+  background-color: #dedede;
+}
+table.sltable td {
+  border-width: 1px;
+  padding: 8px;
+  border-style: solid;
+  border-color: #666666;
+}
+.prettyprint ol.linenums > li { 
+  list-style-type: decimal;
+}
+.prettyprint ol.linenums > li.L0,li.L1,li.L2,li.L3,li.L5,li.L6,li.L7,li.L8  {
+   background: #fff; 
+}
+
+pre.prettyprint {
+  font-size:11px;
+  background-color: #F8F8F8;
+}
+    </style>
+  </head>
+<body>
+<div style="width:970px;font:normal normal 100% 'Trebuchet MS',Trebuchet,Verdana,Sans-Serif;">
+
+<!-- 
+#####################################
+START of blog post 
+#####################################
+-->
+
+<h3>
+Introduction</h3>
+In this article, we will explore how to use Spring Framework and Pagination Framework to implement AJAX pagination.
+<br/><br/>
+For more details about Pagination Framework, please see my other blog posts.
+<br/><br/>
+Pagination Framework support AJAX via using jquery. Adding AJAX to pagination enable our application to update only part of our web page, without reloading the whole page. For example, navigating through page 1 to page 2 will only update the “results” part of the page. When we implement AJAX pagination, objects in Service, Dao, Entity and Bo are exactly the same. However, your JSP and Controller will be different from traditional pagination.
+
+<h3>Controller for AJAX</h3>
+You should declare your controller like traditional pagination:
+<pre class="prettyprint linenums">
+@Controller
+public class SeasonStatAjaxController extends PaginationControllerAbstract<BoSeasonStatSearchParam> {
+</pre>
+In our constructor, we will define some settings for our pagination results. 
+<pre class="prettyprint linenums">
+public SeasonStatAjaxController() {
+    setOptionDisplayCheckbox(true);
+    setOptionDisplaySerialNo(true);
+    setOptionWidth(950);
+    setDefaultRecordPerPage(10);
+    setDefaultSortName("Season");
+    setDefaultSortAscDesc("d");
+    setPageLink("/org/pagination/example/spring4/bball-season-stat2_ajax.do");
+    setAjax(true);
+}
+</pre>
+Notice that we are setting ajax option to true and our page link is setting to an ajax page fragment (instead of a whole jsp page).
+<br/><br/>
+Instead one RequestMapping methods, for AJAX implementation, we need to define two RequestMapping, one for the whole page (defineJsp) and the other for page fragment (defineAjaxJsp). In defineJsp method, call assignModel with parameter “loadResult” set to false to disable the actual loading of data. In defineAjaxJsp, call assignModel like we normally would.
+<br/><br/>
+<pre class="prettyprint linenums">
+@RequestMapping(value="/bball-season-stat2.do", method = {RequestMethod.GET, RequestMethod.POST})
+public String defineJsp(@ModelAttribute(PPARAM) BoSeasonStatSearchParam pparam, Model model) throws Exception {
+  log.debug("pparam.resultIndex="+pparam.getResultIndex());
+    Map<String, Object> map = assignModel(pparam, null, false);
+    model.addAllAttributes(map);
+    model.addAttribute("teamList", seasonStatService.retrieveTeamAliass());
+  return "/org/pagination/example/spring4/view/seasonstat2";
+}
+
+@RequestMapping(value="/bball-season-stat2_ajax.do", method = {RequestMethod.GET, RequestMethod.POST})
+public String defineAjaxJsp(@ModelAttribute(PPARAM) BoSeasonStatSearchParam pparam
+  , @RequestParam(value=BUTTON_ACTION, required=false) String buttonAction, Model model) throws Exception {
+  log.debug("pparam.resultIndex="+pparam.getResultIndex());
+    Map<String, Object> map = assignModel(pparam, buttonAction);
+    model.addAllAttributes(map);
+    if ( "deleteButton".equalsIgnoreCase(buttonAction) && !ArrayUtils.isEmpty(pparam.getSelectedIds()) ) {
+        // Delete button is pressed
+        log.debug("Delete button is pressed");
+        if ( pparam.getSelectedIds() != null ) {
+          for ( String pk : pparam.getSelectedIds() ) {
+              log.debug("delete selected id="+pk);
+          }
+        }
+    }
+    return "/org/pagination/example/spring4/view/seasonstat2_ajax"; // jsp
+}
+</pre>
+
+<h3>User Interface (JSP) for AJAX</h3>
+For AJAX pagination, we will need 2 JSPs, one for the whole page (seasonstat2.jsp) and the other for page fragment (seasonstat2_ajax.jsp).
+<br/><br/>
+For seasonstat2.jsp, it is the same as in traditional pagination except that we don’t need to define jsp attribute “columnsContent”. We also need to add jquery to our page header:
+<pre class="prettyprint linenums">
+&lt;script src=&quot;//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js&quot; type=&quot;text/javascript&quot;&gt;&lt;/script&gt;
+</pre>
+For seasonstat2_ajax.jsp, use pagination tag library pg:pagination_ajax and added the jsp attribute “columnsContent” there.
+<pre class="prettyprint linenums">
+&lt;!DOCTYPE html PUBLIC &quot;-//W3C//DTD XHTML 1.1//EN&quot; 
+   &quot;http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd&quot;&gt;
+&lt;%@taglib prefix=&quot;spring&quot; uri=&quot;http://www.springframework.org/tags&quot;%&gt;
+&lt;%@taglib prefix=&quot;form&quot; uri=&quot;http://www.springframework.org/tags/form&quot; %&gt;
+&lt;%@taglib prefix=&quot;c&quot; uri=&quot;http://java.sun.com/jsp/jstl/core&quot; %&gt;
+&lt;%@taglib prefix=&quot;fmt&quot; uri=&quot;http://java.sun.com/jsp/jstl/fmt&quot; %&gt;
+&lt;%@taglib prefix=&quot;pg&quot; uri=&quot;http://pagination/pagination-spring3.tld&quot; %&gt;
+&lt;%@page language=&quot;java&quot; contentType=&quot;text/html; charset=UTF-8&quot; pageEncoding=&quot;UTF-8&quot;%&gt;
+
+&lt;pg:pagination_ajax pparam=&quot;${pparam}&quot; paginationResult=&quot;${paginationResult}&quot;&gt;
+    &lt;jsp:attribute name=&quot;columnsContent&quot;&gt;
+        &lt;td class=&quot;cell&quot;&gt;
+          &lt;span&gt;
+            &lt;c:out value=&quot;${bo.season}&quot;/&gt;
+          &lt;/span&gt;
+        &lt;/td&gt;
+        &lt;td class=&quot;cell&quot;&gt;
+          &lt;span style=&quot;white-space:nowrap;&quot;&gt;
+            &lt;c:out value=&quot;${bo.playerName}&quot;/&gt;
+          &lt;/span&gt;
+        &lt;/td&gt;
+        &lt;td class=&quot;cell&quot;&gt;
+          &lt;span style=&quot;white-space:nowrap;&quot; title=&quot;&lt;c:out value=&quot;${bo.teamName}&quot;/&gt;&quot;&gt;
+            &lt;c:out value=&quot;${bo.teamAlias}&quot;/&gt;
+          &lt;/span&gt;
+        &lt;/td&gt;
+        &lt;td class=&quot;cell&quot;&gt;
+          &lt;span&gt;
+            &lt;c:out value=&quot;${bo.position}&quot;/&gt;
+          &lt;/span&gt;
+        &lt;/td&gt;
+        &lt;td class=&quot;cell&quot; style=&quot;text-align:right;&quot;&gt;
+          &lt;span&gt;
+            &lt;c:out value=&quot;${bo.gamePlay}&quot;/&gt;
+          &lt;/span&gt;
+        &lt;/td&gt;
+        &lt;td class=&quot;cell&quot; style=&quot;text-align:right;&quot;&gt;
+          &lt;span&gt;
+            &lt;fmt:formatNumber type=&quot;number&quot; value=&quot;${bo.minutePerGame}&quot; pattern=&quot;###&quot;&gt;
+            &lt;/fmt:formatNumber&gt;
+          &lt;/span&gt;
+        &lt;/td&gt;
+        &lt;td class=&quot;cell&quot; style=&quot;text-align:right;&quot;&gt;
+          &lt;span&gt;
+           &lt;fmt:formatNumber type=&quot;number&quot; value=&quot;${bo.fgPercent}&quot; pattern=&quot;##0.0&quot;&gt;
+            &lt;/fmt:formatNumber&gt;
+          &lt;/span&gt;
+        &lt;/td&gt;
+        &lt;td class=&quot;cell&quot; style=&quot;text-align:right;&quot;&gt;
+          &lt;span&gt;
+           &lt;fmt:formatNumber type=&quot;number&quot; value=&quot;${bo.tpPercent}&quot; pattern=&quot;##0.0&quot;&gt;
+           &lt;/fmt:formatNumber&gt;
+          &lt;/span&gt;
+        &lt;/td&gt;
+        &lt;td class=&quot;cell&quot; style=&quot;text-align:right;&quot;&gt;
+          &lt;span&gt;
+            &lt;fmt:formatNumber type=&quot;number&quot; value=&quot;${bo.ftPercent}&quot; pattern=&quot;##0.0&quot;&gt;
+            &lt;/fmt:formatNumber&gt;
+          &lt;/span&gt;
+        &lt;/td&gt;
+        &lt;td class=&quot;cell&quot; style=&quot;text-align:right;&quot;&gt;
+          &lt;span&gt;
+            &lt;fmt:formatNumber type=&quot;number&quot; value=&quot;${bo.reboundPerGame}&quot; pattern=&quot;##0.0&quot;&gt;
+           &lt;/fmt:formatNumber&gt;
+          &lt;/span&gt;
+        &lt;/td&gt;
+        &lt;td class=&quot;cell&quot; style=&quot;text-align:right;&quot;&gt;
+          &lt;span&gt;
+           &lt;fmt:formatNumber type=&quot;number&quot; value=&quot;${bo.assistPerGame}&quot; pattern=&quot;##0.0&quot;&gt;
+           &lt;/fmt:formatNumber&gt;
+          &lt;/span&gt;
+        &lt;/td&gt;
+        &lt;td class=&quot;cell&quot; style=&quot;text-align:right;&quot;&gt;
+          &lt;span&gt;
+            &lt;fmt:formatNumber type=&quot;number&quot; value=&quot;${bo.turnoverPerGame}&quot; pattern=&quot;##0.0&quot;&gt;
+            &lt;/fmt:formatNumber&gt;
+          &lt;/span&gt;
+        &lt;/td&gt;
+        &lt;td class=&quot;cell&quot; style=&quot;text-align:right;&quot;&gt;
+          &lt;span&gt;
+            &lt;fmt:formatNumber type=&quot;number&quot; value=&quot;${bo.stealPerGame}&quot; pattern=&quot;##0.0&quot;&gt;
+            &lt;/fmt:formatNumber&gt;
+          &lt;/span&gt;
+        &lt;/td&gt;
+        &lt;td class=&quot;cell&quot; style=&quot;text-align:right;&quot;&gt;
+          &lt;span&gt;
+            &lt;fmt:formatNumber type=&quot;number&quot; value=&quot;${bo.blockPerGame}&quot; pattern=&quot;##0.0&quot;&gt;
+            &lt;/fmt:formatNumber&gt;
+          &lt;/span&gt;
+        &lt;/td&gt;
+        &lt;td class=&quot;cell&quot; style=&quot;text-align:right;&quot;&gt;
+          &lt;span&gt;
+           &lt;fmt:formatNumber type=&quot;number&quot; value=&quot;${bo.pfPerGame}&quot; pattern=&quot;##0.0&quot;&gt;
+           &lt;/fmt:formatNumber&gt;
+          &lt;/span&gt;
+        &lt;/td&gt;
+        &lt;td class=&quot;cell&quot; style=&quot;text-align:right;&quot;&gt;
+          &lt;span&gt;
+            &lt;fmt:formatNumber type=&quot;number&quot; value=&quot;${bo.pointPerGame}&quot; pattern=&quot;##0.0&quot;&gt;
+            &lt;/fmt:formatNumber&gt;
+          &lt;/span&gt;
+        &lt;/td&gt;
+    &lt;/jsp:attribute&gt;
+&lt;/pg:pagination_ajax&gt;
+</pre>
+
+<h3>Running our example</h3>
+
+Click "Download Zip" button on this page <a href="https://github.com/paginationspring/pagination-example-spring4" target="_blank">https://github.com/paginationspring/pagination-example-spring4</a>.
+<br/><br/>
+The content included full source code used in this example. Open command prompt and type run.bat (for window OS) or ./run.sh (for linux OS). Choose your application server and wait around 30 seconds for the server to startup. 
+<br/><br/>
+After you start the server, go to http://localhost:8080/pagination-example-spring4/org/pagination/example/spring4/bball-season-stat2.do
+<br/><br/>
+You can try navigating through page 1, 2… etc or search for a result. As you can see, the pagination actions will not reload the whole page.
+
+<h3>Help improve this document</h3>
+You can help improve this document by "fork" this repository <a href="https://github.com/paginationspring/pagination/tree/master/doc" target="_blank">https://github.com/paginationspring/pagination/tree/master/doc</a>.
+<br/><br/>
+After making changes to this document, you can submit a pull request and I will change this document accordingly.
+
+<!-- 
+#####################################
+END of blog post 
+#####################################
+-->
+</div>
+<script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js"></script>
+</body>
+</html>

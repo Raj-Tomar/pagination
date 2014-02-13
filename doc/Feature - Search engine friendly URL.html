@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Short URL</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <style type="text/css">
+table.sltable {
+  font-size:11px;
+  color:#333333;
+  border-width: 1px;
+  border-color: #666666;
+  border-collapse: collapse;
+}
+table.sltable  th {
+  border-width: 1px;
+  padding: 8px;
+  border-style: solid;
+  border-color: #666666;
+  background-color: #dedede;
+}
+table.sltable td {
+  border-width: 1px;
+  padding: 8px;
+  border-style: solid;
+  border-color: #666666;
+}
+.prettyprint ol.linenums > li { 
+  list-style-type: decimal;
+}
+.prettyprint ol.linenums > li.L0,li.L1,li.L2,li.L3,li.L5,li.L6,li.L7,li.L8  {
+   background: #fff; 
+}
+
+pre.prettyprint {
+  font-size:11px;
+  background-color: #F8F8F8;
+}
+    </style>
+  </head>
+<body>
+<div style="width:970px;font:normal normal 100% 'Trebuchet MS',Trebuchet,Verdana,Sans-Serif;">
+
+<!-- 
+#####################################
+START of blog post 
+#####################################
+-->
+
+<h3>
+Introduction</h3>
+In this article, we will explore how to make pagination links shorter and SEO friendly.
+<br/><br/>
+For more details about Pagination Framework, please see my other blog posts.
+<br/><br/>
+For SEO, we always want to make our URL search engine robot friendly. Make the following changes to our Controller:
+
+<pre class="prettyprint linenums">
+public SeasonStatController() {
+  .
+  .
+  .
+  setRewriteUrl(true);
+}
+</pre>
+
+<pre class="prettyprint linenums">
+@RequestMapping(value={
+        URL1+"/bball-season-stat.do"
+        , URL2+"/bball-season-stat.do"
+        , URL3+"/bball-season-stat.do"
+        , URL4+"/bball-season-stat.do"
+}, method = {RequestMethod.GET, RequestMethod.POST})
+public ...
+</pre>
+
+<h3>Running our example</h3>
+
+Click "Download Zip" button on this page <a href="https://github.com/paginationspring/pagination-example-spring4" target="_blank">https://github.com/paginationspring/pagination-example-spring4</a>.
+<br/><br/>
+The content included full source code used in this example. Open command prompt and type run.bat (for window OS) or ./run.sh (for linux OS). Choose your application server and wait around 30 seconds for the server to startup. 
+<br/><br/>
+After you start the server, go to http://localhost:8080/pagination-example-spring4
+<br/><br/>
+You can try navigating through page 1, 2… etc or sort a column. As you can see, the url is now shorter and friendlier.
+
+<h3>Help improve this document</h3>
+You can help improve this document by "fork" this repository <a href="https://github.com/paginationspring/pagination/tree/master/doc" target="_blank">https://github.com/paginationspring/pagination/tree/master/doc</a>.
+<br/><br/>
+After making changes to this document, you can submit a pull request and I will change this document accordingly.
+
+<!-- 
+#####################################
+END of blog post 
+#####################################
+-->
+</div>
+<script src="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js"></script>
+</body>
+</html>
