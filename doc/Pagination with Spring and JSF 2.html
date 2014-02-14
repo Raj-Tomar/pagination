@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <title>Spring 4</title>
+    <title>JSF 2</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <style type="text/css">
 table.sltable {
@@ -48,7 +48,7 @@ START of blog post
 
 <h3>
 Introduction</h3>
-In a web application, Pagination, or Page Navigation, is a technique often used to display a large set of data. For a large hundred or thousand or even million of records, it would cause large performance problem to return all of that data in a single page. Pagination is used to present data to user one page at a time, typically 25 to 100 records per page. Moreover, keyword search, advance search option and column sorting are features often needed together with Pagination.<br />
+In a web application, Pagination, or Page Navigation, is a technique often used to display a large set of data. For a large hundred or thousand or even millions of records, it would cause large performance problem to return all of that data in a single page. Pagination is used to present data to user one page at a time, typically 25 to 100 records per page. Moreover, keyword search, advance search option and column sorting are features often needed together with Pagination.<br />
 <br />
 This article will focus on an implementation of Pagination with Spring Framework that will provide full features of pagination, search option and column sorting.<br />
 <h3>Features of Pagination Framework</h3>
@@ -62,12 +62,12 @@ Pagination Framework includes the following features:
 <li>Support JSF 1 and JSF 2</li>
 <li>Support JSP 2.0 and JSP 2.1 and JSP 2.2</li>
 <li>Support JDK 1.5, 1.6, 1.7</li>
-<li>Support Object Relational Mapping (ORM) Data Access including Hibernate, JPA, JDBC</li>
+<li>Support Object Relational Mapping (ORM) Data Access including Hibernate, JPA, JDBC, Lucene</li>
 <li>Search engine friendly URL - to make pagination links shorter and SEO friendly.</li>
 <li>AJAX pagination - make pagination links update only part of our web page, without reloading the whole page. (JSP only)</li>
 <li>Remember search result - recall previous search results after leaving for other pages.</li>
 <li>Override ORM Data Access by writing an implementation of Data Access of your choice (e.g. JDO, iBATIS SQL Maps, etc.)</li>
-<li>Architecturally correct (and beautiful) implementation with Business Object, Controller, Service, Data Access Object (DAO) and View layers well defined.</li>
+<li>Architecturally correct (and beautiful) implementation with Business Object, Controller, Service, Data Access Object (DAO) and View layer well defined.</li>
 </ul>
 
 <h3>Technologies</h3>
@@ -75,10 +75,10 @@ In this example, the following technologies are needed:
 <br />
 <ul>
 <li>Pagination Framework for Spring</li>
-<li>Spring Framework 4.0.1.RELEASE</li>
+<li>Spring Framework 3.2.3.RELEASE</li>
 <li>Hibernate as JPA provider</li>
-<li>JSP 2.2 and JSTL 1.2 (JEE 6)</li>
-<li>JDK 1.7</li>
+<li>JSF 2.1</li>
+<li>JDK 1.6</li>
 </ul>
 <h3>
 Approach</h3>
@@ -86,7 +86,7 @@ This article will use a top-down approach, starting with user interface (View), 
 <br />
 Suppose our Project Manager has gathered user requirements for a Basketball (NBA) Statistic System and an application prototype produced:<br />
 <br />
-<a href="http://2.bp.blogspot.com/-ecFyBNK_-bA/UvzZUdPRJZI/AAAAAAAAABE/MLWe3yP0jgM/s1600/screen-spring4.png" imageanchor="1"><img border="0" src="http://2.bp.blogspot.com/-ecFyBNK_-bA/UvzZUdPRJZI/AAAAAAAAABE/MLWe3yP0jgM/s1600/screen-spring4.png" height="338" width="640" /></a>
+<a href="http://1.bp.blogspot.com/-uJCI2neWguY/Uv12WHBVv6I/AAAAAAAAAB0/SfA2DBsxca8/s1600/screen-jsf2.png" imageanchor="1" ><img border="0" src="http://1.bp.blogspot.com/-uJCI2neWguY/Uv12WHBVv6I/AAAAAAAAAB0/SfA2DBsxca8/s640/screen-jsf2.png" /></a>
 <br />
 Top of the page will have a few search options for users to search through statistics. On the middle left there are 2 action buttons for users to delete or add statistics. On the middle right side total number of basketball players and the corresponding page number will be shown. The basketball players are displayed to user one page at a time, 10 players per page. Columns can be sorted by Season, Player Name, etc. And finally, pagination component is rendered for user to change page. The left most part is for go to the first page; follow by link to go to previous page; follow by numeric items to go to a specific page; follow by next page and last page link.<br />
 <br />
@@ -110,23 +110,23 @@ In order to implement pagination, we will need to create the following files:<br
 <td>Business Object for storing one row of data</td>
 </tr>
 <tr>
-<td>SeasonStatController</td>
+<td>SeasonStatManagedBean</td>
 <td>PaginationControllerAbstract</td>
 <td>Controller to interpret user input and set data into model</td>
 </tr>
 <tr>
 <td>SeasonStatService</td>
 <td>PaginationServiceAbstract</td>
-<td>Service layer for business logic. Raw data from JPA is mapped to Business Object</td>
+<td>Business Logic is implemented and raw data from JPA is mapped to Business Object</td>
 </tr>
 <tr>
 <td>SeasonStatDao</td>
 <td>PaginationDaoDbEntityManagerAbstract</td>
-<td>Data Access Object (DAO) for Database query</td>
+<td>Database query</td>
 </tr>
 <tr>
-<td>seasonstat.jsp</td>
-<td>http://pagination/pagination-spring3.tld</td>
+<td>seasonstat.xhtml</td>
+<td>http://pagination/pagination-jsf</td>
 <td>User Interface presentation</td>
 </tr>
 <tr>
@@ -169,183 +169,155 @@ If you have a WAR project, put both pagination-1.0.2.jar and pagination-taglibs-
 <br/><br/>
 If you have a EAR project, put pagination-1.0.2.jar into your-EAR/lib directory and put pagination-taglibs-1.0.2.jar into your-EAR/yourWAR/WEB-INF/lib directory.
 
-<h3>User Interface (JSP)</h3>
-To create a JSP page for Basketball Statistics System, we will use Pagination Framework for Spring. Pagination Framework contains a predefined JSP Tag Library for generating our pagination page. We will also need spring tag library and spring form tag library, together with standard JSTL core library.<br />
+<h3>User Interface (JSF)</h3>
+To create a JSF page for Basketball Statistics System, we will use Pagination Framework for Spring. Pagination Framework contains a predefined JSF Tag Library for generating our pagination page. We will also need JSF core library.<br />
 <pre class="prettyprint">
-&lt;%@taglib prefix=&quot;spring&quot; uri=&quot;http://www.springframework.org/tags&quot;%&gt;
-&lt;%@taglib prefix=&quot;form&quot; uri=&quot;http://www.springframework.org/tags/form&quot; %&gt;
-&lt;%@taglib prefix=&quot;c&quot; uri=&quot;http://java.sun.com/jsp/jstl/core&quot; %&gt;
-&lt;%@taglib prefix=&quot;fmt&quot; uri=&quot;http://java.sun.com/jsp/jstl/fmt&quot; %&gt;
-&lt;%@taglib prefix=&quot;pg&quot; uri=&quot;http://pagination/pagination-spring3.tld&quot; %&gt;
+&lt;html xmlns=&quot;http://www.w3.org/1999/xhtml&quot;
+   xmlns:ui=&quot;http://java.sun.com/jsf/facelets&quot;
+   xmlns:f=&quot;http://java.sun.com/jsf/core&quot;
+   xmlns:h=&quot;http://java.sun.com/jsf/html&quot;
+   xmlns:pg=&quot;http://pagination/pagination-jsf&quot;
+   &gt;
 </pre>
-Next, we will need html form tag for search option submission. We will use spring form tag to create our form. With this form tag, we will expose a business object pparam (short for page parameters) using attribute modelAttribute. The action attribute is set to the page url, which is defined in another business object paginationResult. Business objects (BO) pparam and paginationResult formed the 2 (and only 2) POJO objects that we will use to present our pagination data. 
+Next, we will need html form tag for search option submission. We will use varies JSF form tag to create our form. 
+<br />
 <pre class="prettyprint">
-&lt;c:url value=&quot;${paginationResult.pageLink}&quot; var=&quot;pageLink&quot;/&gt;
-&lt;form:form id=&quot;pgform&quot; method=&quot;post&quot; modelAttribute=&quot;pparam&quot; action=&quot;${pageLink}&quot;&gt;
+&lt;h:form id=&quot;pgform&quot;&gt;
 .
 .
 .
-&lt;/form:form&gt;
+&lt;/h:form&gt;
+
 </pre>
-Next, use Pagination Framework tag library to create our pagination search and data content. Pagination tag library has tag-file name "pagination" (&lt;pg:pagination&gt;) to help generate the pagination content. pg:pagination has 6 attributes: pparam, paginationResult, searchContent, controlButton, columnsContent and contentAfterLastRow. For pparam and paginationResult, I will explain them in more details in Business Object section below. Now let’s first look at how we use &lt;pg:pagination&gt; tag:
+Next, use Pagination Framework tag library to create our pagination search and data content. Pagination tag library has tag-file name "pagination" (&lt;pg:pagination&gt;) to help generate the pagination content. pg:pagination has 6 attributes: pparam, paginationResult, searchContent, controlButton, columnsContent and contentAfterLastRow. For pparam and paginationResult, I will explain them in more details in Business Object section below. Now let's first look at how we use &lt;pg:pagination&gt; tag:
 
 <pre class="prettyprint linenums">
-&lt;pg:pagination pparam=&quot;${pparam}&quot; paginationResult=&quot;${paginationResult}&quot;&gt;
-    &lt;jsp:attribute name=&quot;searchContent&quot;&gt;
+&lt;pg:pagination pparam=&quot;#{seasonStatManagedBean.pparam}&quot; 
+  paginationResult=&quot;#{seasonStatManagedBean.map[&#39;paginationResult&#39;]}&quot;&gt;
+    &lt;ui:define name=&quot;searchContent&quot;&gt;
         &lt;table class=&quot;searchtable&quot;&gt;
             &lt;tr&gt;
                 &lt;td class=&quot;caption&quot; style=&quot;width:50px;&quot;&gt;Filter:&lt;/td&gt;
                 &lt;td style=&quot;width:120px;&quot;&gt;
-                &lt;form:select path=&quot;season&quot; cssStyle=&quot;width:110px;&quot;&gt;
-                   &lt;form:option value=&quot;&quot; label=&quot;--- Season ---&quot;/&gt;
-                   &lt;form:option value=&quot;2009&quot; label=&quot;2009&quot;/&gt;
-                   &lt;form:option value=&quot;2008&quot; label=&quot;2008&quot;/&gt;
-                   &lt;form:option value=&quot;2007&quot; label=&quot;2007&quot;/&gt;
-                   &lt;form:option value=&quot;2006&quot; label=&quot;2006&quot;/&gt;
-                   &lt;form:option value=&quot;2005&quot; label=&quot;2005&quot;/&gt;
-                   &lt;form:option value=&quot;2004&quot; label=&quot;2004&quot;/&gt;
-                   &lt;form:option value=&quot;2003&quot; label=&quot;2003&quot;/&gt;
-                   &lt;form:option value=&quot;2002&quot; label=&quot;2002&quot;/&gt;
-                   &lt;form:option value=&quot;2001&quot; label=&quot;2001&quot;/&gt;
-                   &lt;form:option value=&quot;2000&quot; label=&quot;2000&quot;/&gt;
-                &lt;/form:select&gt;
+                &lt;h:selectOneMenu id=&quot;season&quot; value=&quot;#{pparam.season}&quot; &gt;
+                    &lt;f:selectItem itemLabel=&quot;--- Season ---&quot; itemValue=&quot;-&quot; /&gt;
+                    &lt;f:selectItem itemLabel=&quot;2009&quot; itemValue=&quot;2009&quot;/&gt;
+                    &lt;f:selectItem itemLabel=&quot;2008&quot; itemValue=&quot;2008&quot;/&gt;
+                    &lt;f:selectItem itemLabel=&quot;2007&quot; itemValue=&quot;2007&quot;/&gt;
+                    &lt;f:selectItem itemLabel=&quot;2006&quot; itemValue=&quot;2006&quot;/&gt;
+                    &lt;f:selectItem itemLabel=&quot;2005&quot; itemValue=&quot;2005&quot;/&gt;
+                    &lt;f:selectItem itemLabel=&quot;2004&quot; itemValue=&quot;2004&quot;/&gt;
+                    &lt;f:selectItem itemLabel=&quot;2003&quot; itemValue=&quot;2003&quot;/&gt;
+                    &lt;f:selectItem itemLabel=&quot;2002&quot; itemValue=&quot;2002&quot;/&gt;
+                    &lt;f:selectItem itemLabel=&quot;2001&quot; itemValue=&quot;2001&quot;/&gt;
+                    &lt;f:selectItem itemLabel=&quot;2000&quot; itemValue=&quot;2000&quot;/&gt;
+                &lt;/h:selectOneMenu&gt; 
                 &lt;/td&gt;
                 &lt;td style=&quot;width:200px;&quot;&gt;
-                    &lt;form:select path=&quot;teamName&quot;&gt;
-                       &lt;form:option value=&quot;&quot; label=&quot;--- Team ---&quot;/&gt;
-                       &lt;form:options items=&quot;${teamList}&quot; /&gt;
-                    &lt;/form:select&gt;
+                &lt;h:selectOneMenu id=&quot;teamName&quot; value=&quot;#{pparam.teamName}&quot; &gt;
+                    &lt;f:selectItem itemLabel=&quot;--- Team ---&quot; itemValue=&quot;-&quot; /&gt;
+                    &lt;f:selectItems value=&quot;#{seasonStatManagedBean.map[&#39;teamList&#39;]}&quot;/&gt;                                
+                &lt;/h:selectOneMenu&gt;
                 &lt;/td&gt;
                 &lt;td style=&quot;width:80px;&quot;&gt;Player Name:&lt;/td&gt;
-                &lt;td style=&quot;width:160px;&quot;&gt;&lt;form:input path=&quot;playerName&quot; cssStyle=&quot;width:150px;&quot;/&gt;&lt;/td&gt;
+                &lt;td style=&quot;width:160px;&quot;&gt;&lt;h:inputText value=&quot;#{pparam.playerName}&quot; style=&quot;width:150px;&quot;/&gt;&lt;/td&gt;
                 &lt;td style=&quot;width:75px;&quot;&gt;
                   &lt;span class=&quot;button&quot;&gt;
-                    &lt;form:button id=&quot;searchButton&quot; name=&quot;buttonAction&quot; value=&quot;searchButton&quot; class=&quot;button&quot;&gt;Search&lt;/form:button&gt;
+                    &lt;h:commandButton value=&quot;Search&quot; action=&quot;#{seasonStatManagedBean.clickSearchButton}&quot; 
+                      style=&quot;width:70px;&quot;&gt;
+                      &lt;f:param name=&quot;buttonAction&quot; value=&quot;searchButton&quot; /&gt;
+                    &lt;/h:commandButton&gt;
                   &lt;/span&gt;
                 &lt;/td&gt;
                 &lt;td style=&quot;width:75px;&quot;&gt;
                   &lt;span class=&quot;button&quot;&gt;
-                    &lt;form:button id=&quot;clearButton&quot; name=&quot;buttonAction&quot; value=&quot;clearButton&quot; class=&quot;button&quot;&gt;Clear&lt;/form:button&gt;
+                    &lt;h:commandButton value=&quot;Clear&quot; action=&quot;#{seasonStatManagedBean.clickClearButton}&quot;
+                      style=&quot;width:70px;&quot;&gt;
+                      &lt;f:param name=&quot;buttonAction&quot; value=&quot;clearButton&quot; /&gt;
+                    &lt;/h:commandButton&gt;
                   &lt;/span&gt;
                 &lt;/td&gt;
             &lt;/tr&gt;
         &lt;/table&gt;
-    &lt;/jsp:attribute&gt;
-    &lt;jsp:attribute name=&quot;controlButton&quot;&gt;
+    &lt;/ui:define&gt;
+    &lt;ui:define name=&quot;controlButton&quot;&gt;
         &lt;div style=&quot;padding-top:10px;&quot;&gt;
             &lt;span class=&quot;button&quot;&gt;
-              &lt;form:button id=&quot;deleteButton&quot; name=&quot;buttonAction&quot; value=&quot;deleteButton&quot; class=&quot;button&quot;&gt;Delete&lt;/form:button&gt;
+              &lt;h:commandButton value=&quot;Delete&quot; action=&quot;#{seasonStatManagedBean.clickDeleteButton}&quot;
+                style=&quot;width:70px;&quot;&gt;
+                &lt;f:param name=&quot;buttonAction&quot; value=&quot;deleteButton&quot; /&gt;
+              &lt;/h:commandButton&gt;
             &lt;/span&gt;
             &lt;span class=&quot;button&quot;&gt;
-              &lt;form:button id=&quot;addButton&quot; name=&quot;buttonAction&quot; value=&quot;addButton&quot; class=&quot;button&quot;&gt;Add&lt;/form:button&gt;
+              &lt;h:commandButton value=&quot;Add&quot; action=&quot;#{seasonStatManagedBean.clickAddButton}&quot;
+                style=&quot;width:70px;&quot;&gt;
+                &lt;f:param name=&quot;buttonAction&quot; value=&quot;addButton&quot; /&gt;
+              &lt;/h:commandButton&gt;
             &lt;/span&gt;
         &lt;/div&gt;
-    &lt;/jsp:attribute&gt;
-    &lt;jsp:attribute name=&quot;columnsContent&quot;&gt;
+    &lt;/ui:define&gt;
+    &lt;ui:define name=&quot;columnsContent&quot;&gt;
         &lt;td class=&quot;cell&quot;&gt;
-          &lt;span&gt;
-            &lt;c:out value=&quot;${bo.season}&quot;/&gt;
-          &lt;/span&gt;
+          &lt;span&gt;&lt;h:outputText value=&quot;#{item.season}&quot;/&gt;&lt;/span&gt;
         &lt;/td&gt;
         &lt;td class=&quot;cell&quot;&gt;
-          &lt;span style=&quot;white-space:nowrap;&quot;&gt;
-            &lt;c:out value=&quot;${bo.playerName}&quot;/&gt;
-          &lt;/span&gt;
+          &lt;span style=&quot;white-space:nowrap;&quot;&gt;&lt;h:outputText value=&quot;#{item.playerName}&quot;/&gt;
+        &lt;/span&gt;&lt;/td&gt;
+        &lt;td class=&quot;cell&quot;&gt;
+          &lt;span style=&quot;white-space:nowrap;&quot;&gt;&lt;h:outputText value=&quot;#{item.teamAlias}&quot; title=&quot;#{item.teamName}&quot;/&gt;&lt;/span&gt;
         &lt;/td&gt;
         &lt;td class=&quot;cell&quot;&gt;
-          &lt;span style=&quot;white-space:nowrap;&quot; title=&quot;&lt;c:out value=&quot;${bo.teamName}&quot;/&gt;&quot;&gt;
-            &lt;c:out value=&quot;${bo.teamAlias}&quot;/&gt;
-          &lt;/span&gt;
-        &lt;/td&gt;
-        &lt;td class=&quot;cell&quot;&gt;
-          &lt;span&gt;
-            &lt;c:out value=&quot;${bo.position}&quot;/&gt;
-          &lt;/span&gt;
+          &lt;span&gt;&lt;h:outputText value=&quot;#{item.position}&quot;/&gt;&lt;/span&gt;
         &lt;/td&gt;
         &lt;td class=&quot;cell&quot; style=&quot;text-align:right;&quot;&gt;
-          &lt;span&gt;
-            &lt;c:out value=&quot;${bo.gamePlay}&quot;/&gt;
-          &lt;/span&gt;
+          &lt;span&gt;&lt;h:outputText value=&quot;#{item.gamePlay}&quot;/&gt;&lt;/span&gt;
         &lt;/td&gt;
         &lt;td class=&quot;cell&quot; style=&quot;text-align:right;&quot;&gt;
-          &lt;span&gt;
-            &lt;fmt:formatNumber type=&quot;number&quot; value=&quot;${bo.minutePerGame}&quot; pattern=&quot;###&quot;&gt;
-            &lt;/fmt:formatNumber&gt;
-          &lt;/span&gt;
+          &lt;span&gt;&lt;h:outputText value=&quot;#{item.minutePerGame}&quot;&gt;&lt;f:convertNumber pattern=&quot;##0&quot;/&gt;&lt;/h:outputText&gt;&lt;/span&gt;
         &lt;/td&gt;
         &lt;td class=&quot;cell&quot; style=&quot;text-align:right;&quot;&gt;
-          &lt;span&gt;
-            &lt;fmt:formatNumber type=&quot;number&quot; value=&quot;${bo.fgPercent}&quot; pattern=&quot;##0.0&quot;&gt;
-            &lt;/fmt:formatNumber&gt;
-          &lt;/span&gt;
+          &lt;span&gt;&lt;h:outputText value=&quot;#{item.fgPercent}&quot;&gt;&lt;f:convertNumber pattern=&quot;##0.0&quot;/&gt;&lt;/h:outputText&gt;&lt;/span&gt;
         &lt;/td&gt;
         &lt;td class=&quot;cell&quot; style=&quot;text-align:right;&quot;&gt;
-          &lt;span&gt;
-            &lt;fmt:formatNumber type=&quot;number&quot; value=&quot;${bo.tpPercent}&quot; pattern=&quot;##0.0&quot;&gt;
-            &lt;/fmt:formatNumber&gt;
-          &lt;/span&gt;
+          &lt;span&gt;&lt;h:outputText value=&quot;#{item.tpPercent}&quot;&gt;&lt;f:convertNumber pattern=&quot;##0.0&quot;/&gt;&lt;/h:outputText&gt;&lt;/span&gt;
         &lt;/td&gt;
         &lt;td class=&quot;cell&quot; style=&quot;text-align:right;&quot;&gt;
-          &lt;span&gt;
-            &lt;fmt:formatNumber type=&quot;number&quot; value=&quot;${bo.ftPercent}&quot; pattern=&quot;##0.0&quot;&gt;
-            &lt;/fmt:formatNumber&gt;
-          &lt;/span&gt;
+          &lt;span&gt;&lt;h:outputText value=&quot;#{item.ftPercent}&quot;&gt;&lt;f:convertNumber pattern=&quot;##0.0&quot;/&gt;&lt;/h:outputText&gt;&lt;/span&gt;
         &lt;/td&gt;
         &lt;td class=&quot;cell&quot; style=&quot;text-align:right;&quot;&gt;
-          &lt;span&gt;
-            &lt;fmt:formatNumber type=&quot;number&quot; value=&quot;${bo.reboundPerGame}&quot; pattern=&quot;##0.0&quot;&gt;
-            &lt;/fmt:formatNumber&gt;
-          &lt;/span&gt;
+          &lt;span&gt;&lt;h:outputText value=&quot;#{item.reboundPerGame}&quot;&gt;&lt;f:convertNumber pattern=&quot;##0.0&quot;/&gt;&lt;/h:outputText&gt;&lt;/span&gt;
         &lt;/td&gt;
         &lt;td class=&quot;cell&quot; style=&quot;text-align:right;&quot;&gt;
-          &lt;span&gt;
-            &lt;fmt:formatNumber type=&quot;number&quot; value=&quot;${bo.assistPerGame}&quot; pattern=&quot;##0.0&quot;&gt;
-            &lt;/fmt:formatNumber&gt;
-          &lt;/span&gt;
+          &lt;span&gt;&lt;h:outputText value=&quot;#{item.assistPerGame}&quot;&gt;&lt;f:convertNumber pattern=&quot;##0.0&quot;/&gt;&lt;/h:outputText&gt;&lt;/span&gt;
         &lt;/td&gt;
         &lt;td class=&quot;cell&quot; style=&quot;text-align:right;&quot;&gt;
-          &lt;span&gt;
-            &lt;fmt:formatNumber type=&quot;number&quot; value=&quot;${bo.turnoverPerGame}&quot; pattern=&quot;##0.0&quot;&gt;
-            &lt;/fmt:formatNumber&gt;
-          &lt;/span&gt;
+          &lt;span&gt;&lt;h:outputText value=&quot;#{item.turnoverPerGame}&quot;&gt;&lt;f:convertNumber pattern=&quot;##0.0&quot;/&gt;&lt;/h:outputText&gt;&lt;/span&gt;
         &lt;/td&gt;
         &lt;td class=&quot;cell&quot; style=&quot;text-align:right;&quot;&gt;
-          &lt;span&gt;
-            &lt;fmt:formatNumber type=&quot;number&quot; value=&quot;${bo.stealPerGame}&quot; pattern=&quot;##0.0&quot;&gt;
-            &lt;/fmt:formatNumber&gt;
-          &lt;/span&gt;
+          &lt;span&gt;&lt;h:outputText value=&quot;#{item.stealPerGame}&quot;&gt;&lt;f:convertNumber pattern=&quot;##0.0&quot;/&gt;&lt;/h:outputText&gt;&lt;/span&gt;
         &lt;/td&gt;
         &lt;td class=&quot;cell&quot; style=&quot;text-align:right;&quot;&gt;
-          &lt;span&gt;
-            &lt;fmt:formatNumber type=&quot;number&quot; value=&quot;${bo.blockPerGame}&quot; pattern=&quot;##0.0&quot;&gt;
-            &lt;/fmt:formatNumber&gt;
-          &lt;/span&gt;
+          &lt;span&gt;&lt;h:outputText value=&quot;#{item.blockPerGame}&quot;&gt;&lt;f:convertNumber pattern=&quot;##0.0&quot;/&gt;&lt;/h:outputText&gt;&lt;/span&gt;
         &lt;/td&gt;
         &lt;td class=&quot;cell&quot; style=&quot;text-align:right;&quot;&gt;
-          &lt;span&gt;
-            &lt;fmt:formatNumber type=&quot;number&quot; value=&quot;${bo.pfPerGame}&quot; pattern=&quot;##0.0&quot;&gt;
-            &lt;/fmt:formatNumber&gt;
-          &lt;/span&gt;
+          &lt;span&gt;&lt;h:outputText value=&quot;#{item.pfPerGame}&quot;&gt;&lt;f:convertNumber pattern=&quot;##0.0&quot;/&gt;&lt;/h:outputText&gt;&lt;/span&gt;
         &lt;/td&gt;
         &lt;td class=&quot;cell&quot; style=&quot;text-align:right;&quot;&gt;
-          &lt;span&gt;
-            &lt;fmt:formatNumber type=&quot;number&quot; value=&quot;${bo.pointPerGame}&quot; pattern=&quot;##0.0&quot;&gt;
-            &lt;/fmt:formatNumber&gt;
-          &lt;/span&gt;
+          &lt;span&gt;&lt;h:outputText value=&quot;#{item.pointPerGame}&quot;&gt;&lt;f:convertNumber pattern=&quot;##0.0&quot;/&gt;&lt;/h:outputText&gt;&lt;/span&gt;
         &lt;/td&gt;
-    &lt;/jsp:attribute&gt;
+    &lt;/ui:define&gt;
 &lt;/pg:pagination&gt;
 </pre>
 <ul>
 <li>searchContent, controlButton, columnsContent and contentAfterLastRow are all jsp fragments. </li>
-<li>searchContent contains the search options; form objects (input, radiobutton, button, etc.) use spring form tag library with attribute "path" set to variable in pparam (remember we set modelAttribute="pparam" in our form). For example, &lt;form:input path="season"&gt; will reference pparam.season variable.</li>
+<li>searchContent contains the search options; </li>
 <li>controlButton contains 2 buttons for delete and add action.</li>
-<li>columnsContent defines how we present the search result, i.e. each row of data (each player), to our users. Here an object instance named "bo" is binded to this jsp fragment and can be used to load data from our BoSeasonStat object (see below).</li>
-<li>contentAfterLastRow should defines an area below the last row of data. We didn't need it in this example.</li>
+<li>columnsContent defines how we present the search result, that is each row of data (each player), to our users. Here an object instance named "bo" is binded to this jsp fragment and can be used to load data from our BoSeasonStat object (see below).</li>
+<li>contentAfterLastRow should defines an area just below the last row of data in current page. We didn't need it in this example.</li>
 </ul>
 <h3>Business Object (BO)</h3>
 <b>pparam</b>
-Page Parameter (pparam) is a business-object representing the search options. We declare this object in <b>com.github.paginationspring.example.spring4.bo.BoSeasonStatSearchParam</b>. This object extends <b>com.github.paginationspring.bo.BoPaginationParam</b> (POJO) and added 3 fields from our search options:
+Page Parameter (pparam) is a business-object representing the search options. We declare this object in <b>com.github.paginationspring.example.jsf2.bo.BoSeasonStatSearchParam</b>. This object extends <b>com.github.paginationspring.bo.BoPaginationParam</b> (POJO) and added 3 fields from our search options:
 <pre class="prettyprint linenums">
 public class BoSeasonStatSearchParam extends BoPaginationParam {
     private String season;
@@ -356,7 +328,7 @@ public class BoSeasonStatSearchParam extends BoPaginationParam {
 pparam will keep value of search option in this pojo and use it in our pagination framework.
 
 <b>paginationResult</b>
-Pagination Result is a business-object representing results of our search. It contains one page of data (as seen by user on his current page), and it also contains some settings like record-per-page, default sorting order, etc. Each row of data (in our case, each player) is represented by declaring object <b>com.github.paginationspring.example.spring4.bo.BoSeasonStat</b>. This object extends <b>com.github.paginationspring.bo.BoPaginationResultRow</b> (POJO) and added fields for display our search results:
+Pagination Result is a business-object representing results of our search. It contains one page of data (as seen by user on his current page), and it also contains some settings like record-per-page, default sorting order, etc. Each row of data (in our case, each player) is represented by declaring object com.github.paginationspring.example.jsf2.bo.BoSeasonStat. This object extends com.github.paginationspring.bo.BoPaginationResultRow (POJO) and added fields for display our search results:
 
 <pre class="prettyprint linenums">
 public class BoSeasonStat extends BoPaginationResultRow<Integer> {
@@ -390,25 +362,26 @@ public class BoSeasonStat extends BoPaginationResultRow<Integer> {
 
 Notice the type inference of &lt;Integer&gt;, this Integer represents the object type of the unique key of this row of data (i.e. nbaSeasonId).
 
-<h3>Controller</h3>
+<h3>ManagedBean</h3>
 
-Controller will define settings of our pagination page, map requests URLs into a handler method and pass business logic to service layer. First we define our controller with @Controller annotation and extend a controller base PaginationControllerAbstract&lt;BoSeasonStatSearchParam&gt; as shown here:
+ManagedBean will define settings of our pagination page, map requests URLs into a handler method and pass business logic to service layer. 
 
 <pre class="prettyprint linenums">
-@Controller
-public class SeasonStatController extends PaginationControllerAbstract<BoSeasonStatSearchParam> {
+@ManagedBean
+@RequestScoped
+public class SeasonStatManagedBean extends PaginationControllerAbstract<BoSeasonStatSearchParam> {
 </pre>
 
 In our constructor, we will define some settings for our pagination results. 
 <pre class="prettyprint linenums">
-public SeasonStatController() {
+public SeasonStatManagedBean() {
     setOptionDisplayCheckbox(true);
     setOptionDisplaySerialNo(true);
     setOptionWidth(950);
     setDefaultRecordPerPage(10);
     setDefaultSortName("Season");
     setDefaultSortAscDesc("d");
-    setPageLink("/org/pagination/example/spring4/bball-season-stat.do"); // url
+    setPageLink("/xhtml/org/pagination/example/jsf2/view/seasonstat.faces");
 }
 </pre>
 <table class="sltable">
@@ -445,48 +418,44 @@ public SeasonStatController() {
 <td>to give you nicer, SEO (Search Engine Optimization) friendly, urls. For example, by setting setRewriteUrl to true, URL mailclient/inbox.do?sortAscDesc=a&sortName=From becomes mailclient/sort/From/a/inbox.do</td>
 </tr>
 </table>
-Next, we will need to map request URLs into a handler method. We do this by using the @RequestMapping, @ModelAttribute and @RequestParam annotations:
+Next, we will need to map request URLs into a handler method. 
 
 <pre class="prettyprint linenums">
-@RequestMapping(value="/bball-season-stat.do", method = {RequestMethod.GET, RequestMethod.POST})
-public String defineJsp(@ModelAttribute(PPARAM) BoSeasonStatSearchParam pparam
-    , @RequestParam(value=BUTTON_ACTION, required=false) String buttonAction, Model model) throws Exception {
-    Map<String, Object> map = assignModel(pparam, buttonAction);
-    model.addAllAttributes(map);
-    model.addAttribute("teamList", seasonStatService.retrieveTeamAliass());
+@PostConstruct
+public void getRun() {
+  try {
+   log.debug("seasonStatService="+seasonStatService);
+   super.setPaginationService(seasonStatService);
+      // setup pparam and buttonAction
 
-    if ( "deleteButton".equalsIgnoreCase(buttonAction) && !ArrayUtils.isEmpty(pparam.getSelectedIds()) ) {
-        // deleteButton button is pressed
-        for ( String pk : pparam.getSelectedIds() ) {
-            log.info("selected id="+pk);
-        }
-    }
-    return "/org/pagination/example/spring4/view/seasonstat";
+      Map<String,String> rpmap = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap();
+      Map<String,String[]> rpvmap = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterValuesMap();
+      
+      BeanUtils.populate(pparam, rpvmap);
+      if ( "-".equals(rpmap.get("season")) )   pparam.setSeason         (null);
+      if ( "-".equals(rpmap.get("teamName")) ) pparam.setTeamName       (null);
+
+      String buttonAction=rpmap.get("buttonAction");
+      log.debug("buttonAction="+buttonAction);
+      if ( buttonAction!=null ) {
+       map = new HashMap<String, Object>();
+      } else {
+       map = assignModel(pparam, null);
+      }
+      map.put("teamList", seasonStatService.retrieveTeamAliass());
+
+  } catch (Exception e) {
+   log.error("",e);
+  }
 }
 </pre>
 
-In @RequestMapping, you will notice URL1, URL2, URL 3 and URL 4 variables. There constant variables predefined some url patterns to be used when we set option setRewriteUrl to true. If setRewriteUrl is set to false, simply use @RequestMapping(value="/bball-season-stat.do").
-<br/><br/>
-In our method declaration, the return type String is logical view name and in our case, the jsp file name. Method argument pparam is annotated with @ModelAttribute to bind request parameters to bean properties from our form object (remember we have &lt;form:form modelAttribute="pparam">). Method argument buttonAction is annotated with @RequestParam to access button request parameter searchButton, clearButton, deleteButton and addButton. Finally, method argument model is used to expose paginationResult object to web view.
-<br/><br/>
 Inside this method, we will call a parent method assignModel from our Pagination Framework, set the returned objects into our model arguments and result the jsp url. The assignModel method will call a service bean, which we will be injecting into our controller. The service bean implements our business logic in our pagination, which we will explain in the next section.
-
+<br/><br/>
+At last, inject our service bean:
 <pre class="prettyprint linenums">
-    Map<String, Object> map = assignModel(pparam, buttonAction);
-    model.addAllAttributes(map);
-    .
-    .
-    .
-    return "/org/pagination/example/spring4/view/seasonstat";
-</pre>
-
-At last, inject our service bean with @Autowired annotation and call a parent method setPaginationService:
-<pre class="prettyprint linenums">
-    @Autowired
-    public void setPaginationService(SeasonStatService seasonStatService) {
-        super.setPaginationService(seasonStatService);
-        this.seasonStatService=seasonStatService;
-    }
+    @ManagedProperty(value="#{seasonStatService}")
+    private SeasonStatService seasonStatService;
 </pre>
 
 <h3>Service</h3>
@@ -709,40 +678,48 @@ public void setEntityManager(EntityManager entityManager) {
 In this example, we used JPA Entity Manager (PaginationDaoDbEntityManagerAbstract) for persistence management. There are 2 more options available in our Pagination Framework, one is PaginationDaoDbHibernateTemplateAbstract which uses spring hibernate template and the other is PaginationDaoLuceneAbstract which uses lucene index as datasource.
 
 <h3>Spring Framework Setup</h3>
-To setup spring framework, we setup spring MVC in web.xml as we normally would:
+To setup spring framework, we setup spring and JSF in web.xml as we normally would:
 <pre class="prettyprint linenums">
-&lt;context-param&gt;
-    &lt;param-name&gt;contextConfigLocation&lt;/param-name&gt;
-    &lt;param-value&gt;/WEB-INF/applicationContext.xml&lt;/param-value&gt;
-&lt;/context-param&gt;
 &lt;listener&gt;
     &lt;listener-class&gt;org.springframework.web.context.ContextLoaderListener&lt;/listener-class&gt;
 &lt;/listener&gt;
+
 &lt;servlet&gt;
-    &lt;servlet-name&gt;dispatcher&lt;/servlet-name&gt;
-    &lt;servlet-class&gt;org.springframework.web.servlet.DispatcherServlet&lt;/servlet-class&gt;
-    &lt;load-on-startup&gt;2&lt;/load-on-startup&gt;
+   &lt;servlet-name&gt;Faces Servlet&lt;/servlet-name&gt;
+   &lt;servlet-class&gt;javax.faces.webapp.FacesServlet&lt;/servlet-class&gt;
+   &lt;load-on-startup&gt;1&lt;/load-on-startup&gt;
 &lt;/servlet&gt;
+
+&lt;!-- Faces Servlet Mapping --&gt;
 &lt;servlet-mapping&gt;
-    &lt;servlet-name&gt;dispatcher&lt;/servlet-name&gt;
-    &lt;url-pattern&gt;/org/pagination/example/spring4/*&lt;/url-pattern&gt; &lt;/servlet-mapping&gt;
+   &lt;servlet-name&gt;Faces Servlet&lt;/servlet-name&gt;
+   &lt;url-pattern&gt;*.faces&lt;/url-pattern&gt;
+&lt;/servlet-mapping&gt;
+
 </pre>
+
 In applicationContext.xml file, define the following for our annotated components:
 <pre class="prettyprint linenums">
 &lt;context:annotation-config /&gt;
-&lt;context:component-scan base-package=&quot;com.github.paginationspring.example.spring4&quot; /&gt;
-&lt;mvc:annotation-driven /&gt;
+&lt;context:component-scan base-package=&quot;com.github.paginationspring.example.jsf2&quot; /&gt;
 </pre>
 You should also define EntityManagerFactory for our JPA.
 <br/><br/>
-In dispatcher-servlet.xml, define the following for view resolver:
+In faces-config.xml, define the following for view handler:
 
 <pre class="prettyprint linenums">
-&lt;bean id=&quot;viewResolver&quot; class=&quot;org.springframework.web.servlet.view.InternalResourceViewResolver&quot;&gt;
-    &lt;property name=&quot;order&quot; value=&quot;2&quot; /&gt;
-    &lt;property name=&quot;prefix&quot; value=&quot;/WEB-INF/jsp/&quot;/&gt;
-    &lt;property name=&quot;suffix&quot; value=&quot;.jsp&quot;/&gt;
-&lt;/bean&gt;
+&lt;application&gt;
+    &lt;variable-resolver&gt;org.springframework.web.jsf.DelegatingVariableResolver&lt;/variable-resolver&gt;
+    &lt;el-resolver&gt;org.springframework.web.jsf.el.SpringBeanFacesELResolver&lt;/el-resolver&gt;
+&lt;/application&gt;
+&lt;component&gt; 
+    &lt;component-type&gt;pagination-url-component&lt;/component-type&gt; 
+    &lt;component-class&gt;com.github.paginationspring.web.PaginationUrlLinkJsfComponent&lt;/component-class&gt; 
+&lt;/component&gt;
+&lt;component&gt; 
+    &lt;component-type&gt;pagination-sorting-url-component&lt;/component-type&gt; 
+    &lt;component-class&gt;com.github.paginationspring.web.PaginationSortingUrlLinkJsfComponent&lt;/component-class&gt; 
+&lt;/component&gt;
 </pre>
 
 <h3>Additional Features</h3>
@@ -757,9 +734,9 @@ See my other blog posts on <a href="http://paginationspring.blogspot.com" target
 
 <h3>Running our example</h3>
 
-Click "Download Zip" button on this page <a href="https://github.com/paginationspring/pagination-example-spring4" target="_blank">https://github.com/paginationspring/pagination-example-spring4</a>.
+Click "Download Zip" button on this page <a href="https://github.com/paginationspring/pagination-example-jsf2" target="_blank">https://github.com/paginationspring/pagination-example-jsf2</a>.
 <br/><br/>
-The zip file included full source code in this document. Make sure you have Maven and JDK installed. Open command prompt and type run.bat (for window OS) or ./run.sh (for linux OS). Choose your application server and wait around 30 seconds for the server to startup. After server started, go to url http://localhost:8080/pagination-example-spring4
+The content included full source code used in this example. Open command prompt and type run.bat (for window OS) or ./run.sh (for linux OS). Choose your application server and wait around 30 seconds for the server to startup. After server started, go to url http://localhost:8080/pagination-example-jsf2
 
 <h3>Help improve this document</h3>
 You can help improve this document by "fork" this repository <a href="https://github.com/paginationspring/pagination/tree/master/doc" target="_blank">https://github.com/paginationspring/pagination/tree/master/doc</a>.

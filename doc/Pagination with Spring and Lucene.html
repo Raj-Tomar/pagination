@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <title>Spring 4</title>
+    <title>Lucene</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <style type="text/css">
 table.sltable {
@@ -75,9 +75,10 @@ In this example, the following technologies are needed:
 <br />
 <ul>
 <li>Pagination Framework for Spring</li>
-<li>Spring Framework 4.0.1.RELEASE</li>
+<li>Spring Framework 3.2.3.RELEASE</li>
 <li>Hibernate as JPA provider</li>
 <li>JSP 2.2 and JSTL 1.2 (JEE 6)</li>
+<li>Lucene 3.6.1</li>
 <li>JDK 1.7</li>
 </ul>
 <h3>
@@ -86,7 +87,7 @@ This article will use a top-down approach, starting with user interface (View), 
 <br />
 Suppose our Project Manager has gathered user requirements for a Basketball (NBA) Statistic System and an application prototype produced:<br />
 <br />
-<a href="http://2.bp.blogspot.com/-ecFyBNK_-bA/UvzZUdPRJZI/AAAAAAAAABE/MLWe3yP0jgM/s1600/screen-spring4.png" imageanchor="1"><img border="0" src="http://2.bp.blogspot.com/-ecFyBNK_-bA/UvzZUdPRJZI/AAAAAAAAABE/MLWe3yP0jgM/s1600/screen-spring4.png" height="338" width="640" /></a>
+<a href="http://1.bp.blogspot.com/-rkRN1TPFJmE/Uv18TUe6zOI/AAAAAAAAACE/UMtv5v-srRo/s1600/screen-lucene.png" imageanchor="1" ><img border="0" src="http://1.bp.blogspot.com/-rkRN1TPFJmE/Uv18TUe6zOI/AAAAAAAAACE/UMtv5v-srRo/s640/screen-lucene.png" /></a>
 <br />
 Top of the page will have a few search options for users to search through statistics. On the middle left there are 2 action buttons for users to delete or add statistics. On the middle right side total number of basketball players and the corresponding page number will be shown. The basketball players are displayed to user one page at a time, 10 players per page. Columns can be sorted by Season, Player Name, etc. And finally, pagination component is rendered for user to change page. The left most part is for go to the first page; follow by link to go to previous page; follow by numeric items to go to a specific page; follow by next page and last page link.<br />
 <br />
@@ -128,14 +129,6 @@ In order to implement pagination, we will need to create the following files:<br
 <td>seasonstat.jsp</td>
 <td>http://pagination/pagination-spring3.tld</td>
 <td>User Interface presentation</td>
-</tr>
-<tr>
-<td>PgNbaPlayer<br />
-PgNbaSeason<br />
-PgNbaTeam
-</td>
-<td>Nil</td>
-<td>Database mapping object</td>
 </tr>
 </tbody></table>
 <h3>Maven Setup</h3>
@@ -345,7 +338,7 @@ Next, use Pagination Framework tag library to create our pagination search and d
 </ul>
 <h3>Business Object (BO)</h3>
 <b>pparam</b>
-Page Parameter (pparam) is a business-object representing the search options. We declare this object in <b>com.github.paginationspring.example.spring4.bo.BoSeasonStatSearchParam</b>. This object extends <b>com.github.paginationspring.bo.BoPaginationParam</b> (POJO) and added 3 fields from our search options:
+Page Parameter (pparam) is a business-object representing the search options. We declare this object in <b>com.github.paginationspring.example.lucene.bo.BoSeasonStatSearchParam</b>. This object extends <b>com.github.paginationspring.bo.BoPaginationParam</b> (POJO) and added 3 fields from our search options:
 <pre class="prettyprint linenums">
 public class BoSeasonStatSearchParam extends BoPaginationParam {
     private String season;
@@ -356,7 +349,7 @@ public class BoSeasonStatSearchParam extends BoPaginationParam {
 pparam will keep value of search option in this pojo and use it in our pagination framework.
 
 <b>paginationResult</b>
-Pagination Result is a business-object representing results of our search. It contains one page of data (as seen by user on his current page), and it also contains some settings like record-per-page, default sorting order, etc. Each row of data (in our case, each player) is represented by declaring object <b>com.github.paginationspring.example.spring4.bo.BoSeasonStat</b>. This object extends <b>com.github.paginationspring.bo.BoPaginationResultRow</b> (POJO) and added fields for display our search results:
+Pagination Result is a business-object representing results of our search. It contains one page of data (as seen by user on his current page), and it also contains some settings like record-per-page, default sorting order, etc. Each row of data (in our case, each player) is represented by declaring object <b>com.github.paginationspring.example.lucene.bo.BoSeasonStat</b>. This object extends <b>com.github.paginationspring.bo.BoPaginationResultRow</b> (POJO) and added fields for display our search results:
 
 <pre class="prettyprint linenums">
 public class BoSeasonStat extends BoPaginationResultRow<Integer> {
@@ -408,7 +401,7 @@ public SeasonStatController() {
     setDefaultRecordPerPage(10);
     setDefaultSortName("Season");
     setDefaultSortAscDesc("d");
-    setPageLink("/org/pagination/example/spring4/bball-season-stat.do"); // url
+    setPageLink("/org/pagination/example/lucene/bball-season-stat.do"); // url
 }
 </pre>
 <table class="sltable">
@@ -461,7 +454,7 @@ public String defineJsp(@ModelAttribute(PPARAM) BoSeasonStatSearchParam pparam
             log.info("selected id="+pk);
         }
     }
-    return "/org/pagination/example/spring4/view/seasonstat";
+    return "/org/pagination/example/lucene/view/seasonstat";
 }
 </pre>
 
@@ -477,7 +470,7 @@ Inside this method, we will call a parent method assignModel from our Pagination
     .
     .
     .
-    return "/org/pagination/example/spring4/view/seasonstat";
+    return "/org/pagination/example/lucene/view/seasonstat";
 </pre>
 
 At last, inject our service bean with @Autowired annotation and call a parent method setPaginationService:
@@ -496,47 +489,41 @@ First, we define our service bean with @Service annotation and extend a service 
 
 <pre class="prettyprint linenums">
 @Service
-public class SeasonStatService extends PaginationServiceAbstract<BoSeasonStatSearchParam, BoSeasonStat, PgNbaSeason> {
+public class SeasonStatService extends PaginationServiceAbstract<BoSeasonStatSearchParam, BoSeasonStat, Document> {
 </pre>
 
-Type inference of <BoSeasonStatSearchParam, BoSeasonStat, PgNbaSeason> represent our page parameter, business object and data entity object respectively. Data Entiry PgNbaSeason is generated with Hibernate / JBoss Tools from database structure.
+Type inference of <BoSeasonStatSearchParam, BoSeasonStat, Document> represent our page parameter, business object and data entity object respectively. Document is Lucene document.
 <br/><br/>
 To map database raw data into our business object, override assignDataToBo method:
 
 <pre class="prettyprint linenums">
-@Override
-protected BoSeasonStat assignDataToBo(PgNbaSeason entity) throws Exception {
+  @Override
+  protected BoSeasonStat assignDataToBo(Document document) throws Exception {
     BoSeasonStat bo = new BoSeasonStat();
-    bo.setNbaSeasonId(entity.getNbaSeasonId());
-    bo.setPlayerName (entity.getPgNbaPlayer().getFirstName()+" "+entity.getPgNbaPlayer().getLastName());
-    bo.setHeight     (entity.getPgNbaPlayer().getHeightFeet()+"-"+entity.getPgNbaPlayer().getHeightInches());
-    bo.setWeight     (String.valueOf(entity.getPgNbaPlayer().getWeight()));
-    bo.setTeamName   (entity.getPgNbaTeam().getLocation()+" "+entity.getPgNbaTeam().getTeamName());
-    bo.setTeamAlias  (entity.getPgNbaTeam().getTeamAlias());
-    bo.setPosition   (entity.getPgNbaPlayer().getPosition());
-    bo.setSeason     (entity.getSeason     ());
-    bo.setGamePlay   (entity.getGamePlay   ());
-    if ( entity.getGamePlay() != 0 ) {
-      bo.setMinutePerGame   ((double) entity.getMinute    ()/(double) entity.getGamePlay());
-      bo.setPointPerGame    ((double) entity.getPoint      ()/(double) entity.getGamePlay());
-      bo.setReboundPerGame  ((double) entity.getRebound    ()/(double) entity.getGamePlay());
-      bo.setAssistPerGame   ((double) entity.getAssist     ()/(double) entity.getGamePlay());
-      bo.setStealPerGame    ((double) entity.getSteal      ()/(double) entity.getGamePlay());
-      bo.setBlockPerGame    ((double) entity.getBlock      ()/(double) entity.getGamePlay());
-      bo.setTurnoverPerGame ((double) entity.getTurnover   ()/(double) entity.getGamePlay());
-      bo.setPfPerGame     ((double) entity.getPf         ()/(double) entity.getGamePlay());
+    bo.setNbaSeasonId(Integer.parseInt(document.get("nbaSeasonId")));
+    bo.setPlayerName (document.get("playerName"));
+    bo.setHeight     (document.get("height"));
+    bo.setWeight     (document.get("weight"));
+    bo.setTeamName   (document.get("teamName"));
+    bo.setTeamAlias  (document.get("teamAlias"));
+    bo.setPosition   (document.get("position"));
+    bo.setSeason     (document.get("season"));
+    bo.setGamePlay   (Integer.parseInt(document.get("gamePlay")));
+    if ( bo.getGamePlay() != 0 ) {
+      bo.setMinutePerGame   (Double.parseDouble(document.get("minutePerGame")));
+      bo.setPointPerGame    (Double.parseDouble(document.get("pointPerGame")));
+      bo.setReboundPerGame  (Double.parseDouble(document.get("reboundPerGame")));
+      bo.setAssistPerGame   (Double.parseDouble(document.get("assistPerGame")));
+      bo.setStealPerGame    (Double.parseDouble(document.get("stealPerGame")));
+      bo.setBlockPerGame    (Double.parseDouble(document.get("blockPerGame")));
+      bo.setTurnoverPerGame (Double.parseDouble(document.get("turnoverPerGame")));
+      bo.setPfPerGame     (Double.parseDouble(document.get("pfPerGame")));
     }
-    if ( entity.getFgAttempt() != 0 ) {
-      bo.setFgPercent  (((double) entity.getFgMade() / (double) entity.getFgAttempt())*(double) 100);
-    }
-    if ( entity.getTpAttempt() != 0 ) {
-      bo.setTpPercent(((double) entity.getTpMade() / (double) entity.getTpAttempt())*(double) 100);
-    }
-    if ( entity.getFtAttempt() != 0 ) {
-      bo.setFtPercent(((double) entity.getFtMade() / (double) entity.getFtAttempt())*(double) 100);
-    }
+    bo.setFgPercent  (Double.parseDouble(document.get("fgPercent")));
+    bo.setTpPercent  (Double.parseDouble(document.get("tpPercent")));
+    bo.setFtPercent  (Double.parseDouble(document.get("ftPercent")));
     return bo;
-}
+  }
 </pre>
 To define column properties, override assignColumnsDefinition method:
 <pre class="prettyprint linenums">
@@ -644,11 +631,11 @@ We create a new BoPaginationColumn bean for each column. BoPaginationColumn has 
 At last, inject our DAO bean with @Autowired annotation and call a parent method setPaginationDao:
 
 <pre class="prettyprint linenums">
-@Autowired 
-public void setPaginationDao(SeasonStatDao seasonStatDao) {
-    super.setPaginationDao(seasonStatDao);
-    this.seasonStatDao = seasonStatDao;
-}
+  @Autowired 
+  public void setPaginationDao(SeasonStatLuceneDao seasonStatLuceneDao) {
+      super.setPaginationDao(seasonStatLuceneDao);
+      this.seasonStatLuceneDao = seasonStatLuceneDao;
+  }
 </pre>
 
 <h3>Data Access Layer (DAO)</h3>
@@ -656,57 +643,56 @@ DAO bean load the raw data from database using JPA entity manager. First, we def
 
 <pre class="prettyprint linenums">
 @Repository
-public class SeasonStatDao extends PaginationDaoDbEntityManagerAbstract<PgNbaSeason, BoSeasonStatSearchParam> {
+public class SeasonStatDao extends PaginationDaoLuceneAbstract<BoSeasonStatSearchParam> {
 </pre>
-PgNbaSeason is the database entity bean and BoSeasonStatSearchParam is the incoming page parameters.
+BoSeasonStatSearchParam is the incoming page parameters.
 <br/><br/>
-First, we will setup query to load data from database:
+First, we will setup query to load data from lucene:
 
-<pre class="prettyprint linenums">
-private static final String EJBQL = "select distinct a, b, c " +
-        "from PgNbaSeason a " +
-        "join a.pgNbaPlayer b " +
-        "join a.pgNbaTeam c " +
-        "where a.gamePlay > 0 ";
-    
-    private static final String[] RESTRICTIONS = {
-      "a.season = :season",
-        "lower(concat(concat(b.firstName,' '),b.lastName)) like :playerNameCustomized",
-        "c.teamAlias=:teamName"
-    };
-
-    public SeasonStatDao() {
-        this.ejbql = EJBQL;
-        this.restrictions = Arrays.asList(RESTRICTIONS);
-    }
-</pre>
-Let's look at our query. We select distinct PgNbaSeason (alias a) in order to pass this object to assignDataToBo method in Service bean. In order for the query to be able to sort by "Player Name" field (see assignColumnsDefinition in Service bean), we need to select pgNbaPlayer (alias b) in our query. Moreover, we will define pgNbaTeam (alias c) and in where clause we restrict our query for gamePlay larger than 0.
-<br/><br/>
-Restrictions define our search options. There are 2 kinds of restrictions binding: 1) binding directly to variable in pparam (BoSeasonStatSearchParam) and 2) binding via customization.
-<br/><br/>
-The first restriction a.season=:season means that PgNbaSeason.season are binding directly to variable "season" in pparam. Other restrictions are defined in binding in customizeRestrictions method:
 <pre class="prettyprint linenums">
 @Override
-public void customizeRestrictions(Map<String, Object> queryParameters,
-        BoSeasonStatSearchParam pparam) throws Exception {
-    if ( StringUtils.isEmpty(pparam.getPlayerName()) ) {
-        queryParameters.put("playerNameCustomized", null);
-    } else {
-        queryParameters.put("playerNameCustomized", "%"+StringUtils.trim(pparam.getPlayerName().toLowerCase())+"%");
-    }
+protected File loadLuceneIndexDirectory() {
+    URL url = SeasonStatLuceneDao.class.getResource("/luceneindex");
+    return new File(url.getFile());
 }
-</pre>
-In this customizeRestrictions method, playerNameCustomized is customized and then put into a map queryParameters. Our Pagination Framework will use this map to bind variables into our JPA query.
-<br/><br/>
-Finally, we need to inject entityManager via @PersistenceContext annotation:
-<pre class="prettyprint linenums">
-@PersistenceContext
-public void setEntityManager(EntityManager entityManager) {
-    super.setEntityManager(entityManager);
-}
-</pre>
 
-In this example, we used JPA Entity Manager (PaginationDaoDbEntityManagerAbstract) for persistence management. There are 2 more options available in our Pagination Framework, one is PaginationDaoDbHibernateTemplateAbstract which uses spring hibernate template and the other is PaginationDaoLuceneAbstract which uses lucene index as datasource.
+@Override
+protected QueryParser loadQueryParser() {
+    Analyzer analyzer = new KeywordAnalyzer();
+    QueryParser parser = new QueryParser(Version.LUCENE_36, "season", analyzer);
+    return parser;
+}
+
+@Override
+protected String composeQuery(BoSeasonStatSearchParam pparam) {
+  StringBuilder sb = new StringBuilder();
+  if ( !StringUtils.isEmpty(pparam.getSeason()) ) {
+    sb.append("season:\""+pparam.getSeason()+"\"");
+  } else {
+    sb.append("season:[2000 TO 2009]");
+  }
+  
+  if ( !StringUtils.isEmpty(pparam.getPlayerName()) ) {
+        String token;
+        StringTokenizer tokens = new StringTokenizer(pparam.getPlayerName(), " ");
+        while (tokens.hasMoreTokens()) {
+            token = tokens.nextToken().trim();
+            token = token.toLowerCase();
+      sb.append(" AND playerName:");
+            sb.append(token+"*");
+        }     
+  }
+  if ( !StringUtils.isEmpty(pparam.getTeamName()) ) {
+    sb.append(" AND teamName:\""+pparam.getTeamName()+"\"");
+  }
+  return sb.toString();
+}
+</pre>
+loadLuceneIndexDirectory method return the file location of our lucene index.
+<br/><br/>
+loadQueryParser method return the QueryParser object, which also set the Analyzer.
+<br/><br/>
+composeQuery method return the Lucene query used to find our results. Please reference <a href="http://lucene.apache.org/core/2_9_4/queryparsersyntax.html" target="_blank">http://lucene.apache.org/core/2_9_4/queryparsersyntax.html</a> for Lucene query syntax.
 
 <h3>Spring Framework Setup</h3>
 To setup spring framework, we setup spring MVC in web.xml as we normally would:
@@ -725,16 +711,15 @@ To setup spring framework, we setup spring MVC in web.xml as we normally would:
 &lt;/servlet&gt;
 &lt;servlet-mapping&gt;
     &lt;servlet-name&gt;dispatcher&lt;/servlet-name&gt;
-    &lt;url-pattern&gt;/org/pagination/example/spring4/*&lt;/url-pattern&gt; &lt;/servlet-mapping&gt;
+    &lt;url-pattern&gt;/org/pagination/example/lucene/*&lt;/url-pattern&gt;
+&lt;/servlet-mapping&gt;
 </pre>
 In applicationContext.xml file, define the following for our annotated components:
 <pre class="prettyprint linenums">
 &lt;context:annotation-config /&gt;
-&lt;context:component-scan base-package=&quot;com.github.paginationspring.example.spring4&quot; /&gt;
+&lt;context:component-scan base-package=&quot;com.github.paginationspring.example.lucene&quot; /&gt;
 &lt;mvc:annotation-driven /&gt;
 </pre>
-You should also define EntityManagerFactory for our JPA.
-<br/><br/>
 In dispatcher-servlet.xml, define the following for view resolver:
 
 <pre class="prettyprint linenums">
@@ -757,9 +742,9 @@ See my other blog posts on <a href="http://paginationspring.blogspot.com" target
 
 <h3>Running our example</h3>
 
-Click "Download Zip" button on this page <a href="https://github.com/paginationspring/pagination-example-spring4" target="_blank">https://github.com/paginationspring/pagination-example-spring4</a>.
+Click "Download Zip" button on this page <a href="https://github.com/paginationspring/pagination-example-lucene" target="_blank">https://github.com/paginationspring/pagination-example-lucene</a>.
 <br/><br/>
-The zip file included full source code in this document. Make sure you have Maven and JDK installed. Open command prompt and type run.bat (for window OS) or ./run.sh (for linux OS). Choose your application server and wait around 30 seconds for the server to startup. After server started, go to url http://localhost:8080/pagination-example-spring4
+The zip file included full source code in this document. Make sure you have Maven and JDK installed. Open command prompt and type run.bat (for window OS) or ./run.sh (for linux OS). Choose your application server and wait around 30 seconds for the server to startup. After server started, go to url http://localhost:8080/pagination-example-lucene
 
 <h3>Help improve this document</h3>
 You can help improve this document by "fork" this repository <a href="https://github.com/paginationspring/pagination/tree/master/doc" target="_blank">https://github.com/paginationspring/pagination/tree/master/doc</a>.
