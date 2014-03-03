@@ -4,6 +4,11 @@
     <title>JSF 2</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <style type="text/css">
+        a:link {text-decoration:none;color:#005498;}
+        a:visited {text-decoration:none;color:#005498;}
+        a:hover {text-decoration:underline;color:#005498;}
+        a:active {text-decoration:underline;color:#005498;}
+
 table.sltable {
   font-size:11px;
   color:#333333;
@@ -35,6 +40,10 @@ pre.prettyprint {
   font-size:11px;
   background-color: #F8F8F8;
 }
+h3 {
+  color: #ba3925;
+  padding-top: 10px;
+}
     </style>
   </head>
 <body>
@@ -46,13 +55,27 @@ START of blog post
 #####################################
 -->
 
-<h3>
+<div itemscope itemtype="http://data-vocabulary.org/Product">
+  <h3><span itemprop="name">Pagination Framework</span></h3>
+  <span itemprop="description">
+  An implementation of Pagination with Spring Framework that provides full features of pagination, search option and column sorting. It supports JSP, JSF and AJAX.
+  </span>
+  <br/>
+  Pagination Framework is written entirely in <span itemprop="category" content="Software &gt; Computer Software &gt; Compilers & Programming Tools">Java</span>.
+  <br/>
+  <span itemprop="offerDetails" itemscope itemtype="http://data-vocabulary.org/Offer">
+  It is Free (<meta itemprop="currency" content="USD" />$<span itemprop="price">0</span>) with MIT License and it is <span itemprop="availability" content="in_stock">available</span> at <span itemprop="seller">Maven Central Repository</span> and <span itemprop="seller">GitHub</span>.
+  </span>
+</div>
+<h3 id="ps-intro">
 Introduction</h3>
-In a web application, Pagination, or Page Navigation, is a technique often used to display a large set of data. For a large hundred or thousand or even millions of records, it would cause large performance problem to return all of that data in a single page. Pagination is used to present data to user one page at a time, typically 25 to 100 records per page. Moreover, keyword search, advance search option and column sorting are features often needed together with Pagination.<br />
+In a web application, Pagination, or Page Navigation, is a technique often used to display a large set of data. For a large hundred or thousand or even million of records, it would cause large performance problem to return all of that data in a single page. Pagination is used to present data to user one page at a time, typically 25 to 100 records per page. Moreover, keyword search, advance search option and column sorting are features often needed together with Pagination.<br />
 <br />
-This article will focus on an implementation of Pagination with Spring Framework that will provide full features of pagination, search option and column sorting.<br />
-<h3>Features of Pagination Framework</h3>
-Pagination Framework includes the following features:
+This article will focus on an implementation of <a href="https://github.com/paginationspring/pagination" title="Pagination, Page Navigation, Spring Framework, JSF, JSP, Hibernate, JPA">Pagination Framework</a> based on <a href="http://projects.spring.io/spring-framework/">Spring Framework</a> that will provide full features of pagination, search option and column sorting.
+<br/><br/>
+Example in this article is available in <a href="https://github.com/paginationspring/pagination-example-jsf2" target="_blank">Pagination Example JSF2</a>. Go to <a href="#ps-run">Running our example</a> on how to test run this application on your computer.
+<h3 id="ps-feature">Features of Pagination Framework</h3>
+<a href="https://github.com/paginationspring/pagination" title="Pagination, Page Navigation, Spring Framework, JSF, JSP, Hibernate, JPA">Pagination Framework</a> includes the following features:
 <ul>
 <li>Fine-grained options to cater varies pagination requirement.</li>
 <li>Customizable search options</li>
@@ -70,21 +93,21 @@ Pagination Framework includes the following features:
 <li>Architecturally correct (and beautiful) implementation with Business Object, Controller, Service, Data Access Object (DAO) and View layer well defined.</li>
 </ul>
 
-<h3>Technologies</h3>
+<h3 id="ps-tech">Technologies</h3>
 In this example, the following technologies are needed:
 <br />
 <ul>
-<li>Pagination Framework for Spring</li>
-<li>Spring Framework 3.2.3.RELEASE</li>
-<li>Hibernate as JPA provider</li>
-<li>JSF 2.1</li>
-<li>JDK 1.6</li>
+<li><a href="https://github.com/paginationspring/pagination" title="Pagination, Page Navigation, Spring Framework, JSF, JSP, Hibernate, JPA">Pagination Framework</a> for Spring</li>
+<li><a href="http://projects.spring.io/spring-framework/">Spring Framework</a> 3.2.3.RELEASE</li>
+<li><a href="http://hibernate.org/">Hibernate</a> as JPA provider</li>
+<li>JSF 2.1 (<a href="http://www.oracle.com/technetwork/java/javaee/overview/index.html">JEE</a> 6)</li>
+<li><a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">JDK</a> 1.6</li>
 </ul>
-<h3>
+<h3 id="ps-appr">
 Approach</h3>
-This article will use a top-down approach, starting with user interface (View), working the way down to Controller, then to Service and Repository (Model / DAO) layer.<br />
+This article will use a top-down approach, starting with <a href="#ps-ui">user interface (View)</a>, working the way down to <a href="#ps-ctrl">Controller</a>, then to <a href="#ps-svc">Service</a> and <a href="#ps-dao">Repository (Model / DAO) layer</a>.<br />
 <br />
-Suppose our Project Manager has gathered user requirements for a Basketball (NBA) Statistic System and an application prototype produced:<br />
+Suppose our Project Manager has gathered user requirements for a <u>Basketball (NBA) Statistic System</u> and an application prototype produced:<br />
 <br />
 <a href="http://1.bp.blogspot.com/-uJCI2neWguY/Uv12WHBVv6I/AAAAAAAAAB0/SfA2DBsxca8/s1600/screen-jsf2.png" imageanchor="1" ><img border="0" src="http://1.bp.blogspot.com/-uJCI2neWguY/Uv12WHBVv6I/AAAAAAAAAB0/SfA2DBsxca8/s640/screen-jsf2.png" /></a>
 <br />
@@ -117,12 +140,12 @@ In order to implement pagination, we will need to create the following files:<br
 <tr>
 <td>SeasonStatService</td>
 <td>PaginationServiceAbstract</td>
-<td>Business Logic is implemented and raw data from JPA is mapped to Business Object</td>
+<td>Service layer for business logic. Raw data from JPA is mapped to Business Object</td>
 </tr>
 <tr>
 <td>SeasonStatDao</td>
 <td>PaginationDaoDbEntityManagerAbstract</td>
-<td>Database query</td>
+<td>Data Access Object (DAO) for Database query</td>
 </tr>
 <tr>
 <td>seasonstat.xhtml</td>
@@ -138,11 +161,13 @@ PgNbaTeam
 <td>Database mapping object</td>
 </tr>
 </tbody></table>
-<h3>Maven Setup</h3>
+<h3 id="ps-maven">Maven Setup</h3>
 
-Artifact "pagination" is the our pagination implementation.
+Pagination Framework is available at <a href="http://search.maven.org/">Maven Central Repository</a>.
 <br/><br/>
-Artifact "pagination-taglibs" is the our pagination tag library.
+<a href="http://search.maven.org/#artifactdetails%7Ccom.github.paginationspring%7Cpagination%7C1.0.3%7Cjar">Maven Repository for Pagination Framework</a>
+<br/><br/>
+<a href="http://search.maven.org/#artifactdetails%7Ccom.github.paginationspring%7Cpagination-taglibs%7C1.0.3%7Cjar">Maven Repository for Pagination Framework Tag Library</a>
 <br/><br/>
 
 If you have a single WAR project, add the following dependency to your pom.xml:
@@ -160,16 +185,20 @@ If you have a single WAR project, add the following dependency to your pom.xml:
 </pre>
 Notice that pagination and pagination-taglibs do not have maven dependency on spring framework (scope=optional). Therefore, we will need to add spring framework dependencies to pom.xml as well.
 <br/><br/>
+Please reference <a href="https://github.com/paginationspring/pagination-example-jsf2/blob/master/pom.xml">pom.xml</a> in our example application.
+<br/><br/>
 If you have a EAR project with WAR module inside, add "pagination" dependency to yourEAR/pom.xml and "pagination-taglibs" dependency to yourWAR/pom.xml.
 
-<h3>Non-Maven Setup</h3>
+<h3 id="ps-nonmaven">Non-Maven Setup</h3>
 You can simply download the two jar files and put it into your project.
 <br/><br/>
-If you have a WAR project, put both pagination-1.0.3.jar and pagination-taglibs-1.0.3.jar into your yourWAR/WEB-INF/lib directory.
+If you have a WAR project, put both <a href="http://search.maven.org/remotecontent?filepath=com/github/paginationspring/pagination/1.0.3/pagination-1.0.3.jar">pagination-1.0.3.jar</a> and <a href="http://search.maven.org/remotecontent?filepath=com/github/paginationspring/pagination-taglibs/1.0.3/pagination-taglibs-1.0.3.jar">pagination-taglibs-1.0.3.jar</a> into your yourWAR/WEB-INF/lib directory.
 <br/><br/>
-If you have a EAR project, put pagination-1.0.3.jar into your-EAR/lib directory and put pagination-taglibs-1.0.3.jar into your-EAR/yourWAR/WEB-INF/lib directory.
+If you have a EAR project, put <a href="http://search.maven.org/remotecontent?filepath=com/github/paginationspring/pagination/1.0.3/pagination-1.0.3.jar">pagination-1.0.3.jar</a> into your-EAR/lib directory and put <a href="http://search.maven.org/remotecontent?filepath=com/github/paginationspring/pagination-taglibs/1.0.3/pagination-taglibs-1.0.3.jar">pagination-taglibs-1.0.3.jar</a> into your-EAR/yourWAR/WEB-INF/lib directory.
 
-<h3>User Interface (JSF)</h3>
+<h3 id="ps-ui">User Interface (JSP)</h3>
+<a href="https://github.com/paginationspring/pagination-example-jsf2/blob/master/src/main/webapp/xhtml/org/pagination/example/jsf2/view/seasonstat.xhtml" style="text-decoration:underline;">seasonstat.xhtml</a>
+<br/><br/>
 To create a JSF page for Basketball Statistics System, we will use Pagination Framework for Spring. Pagination Framework contains a predefined JSF Tag Library for generating our pagination page. We will also need JSF core library.<br />
 <pre class="prettyprint">
 &lt;html xmlns=&quot;http://www.w3.org/1999/xhtml&quot;
@@ -189,7 +218,8 @@ Next, we will need html form tag for search option submission. We will use varie
 &lt;/h:form&gt;
 
 </pre>
-Next, use Pagination Framework tag library to create our pagination search and data content. Pagination tag library has tag-file name "pagination" (&lt;pg:pagination&gt;) to help generate the pagination content. pg:pagination has 6 attributes: pparam, paginationResult, searchContent, controlButton, columnsContent and contentAfterLastRow. For pparam and paginationResult, I will explain them in more details in Business Object section below. Now let's first look at how we use &lt;pg:pagination&gt; tag:
+Next, use <a href="https://github.com/paginationspring/pagination-taglibs" title="Pagination, Page Navigation, Spring Framework, JSF, JSP, Tag Library">Pagination Framework Tag Library</a>
+ to create our pagination search and data content. Pagination tag library has tag-file name "pagination" (&lt;pg:pagination&gt;) to help generate the pagination content. pg:pagination has 6 attributes: pparam, paginationResult, searchContent, controlButton, columnsContent and contentAfterLastRow. For pparam and paginationResult, I will explain them in more details in Business Object section below. Now let's first look at how we use &lt;pg:pagination&gt; tag:
 
 <pre class="prettyprint linenums">
 &lt;pg:pagination pparam=&quot;#{seasonStatManagedBean.pparam}&quot; 
@@ -315,9 +345,12 @@ Next, use Pagination Framework tag library to create our pagination search and d
 <li>columnsContent defines how we present the search result, that is each row of data (each player), to our users. Here an object instance named "bo" is binded to this jsp fragment and can be used to load data from our BoSeasonStat object (see below).</li>
 <li>contentAfterLastRow should defines an area just below the last row of data in current page. We didn't need it in this example.</li>
 </ul>
-<h3>Business Object (BO)</h3>
+<h3 id="ps-bo">Business Object (BO)</h3>
+<a href="https://github.com/paginationspring/pagination-example-jsf2/blob/master/src/main/java/com/github/paginationspring/example/jsf2/bo/BoSeasonStatSearchParam.java" style="text-decoration:underline;">BoSeasonStatSearchParam</a>, <a href="https://github.com/paginationspring/pagination-example-jsf2/blob/master/src/main/java/com/github/paginationspring/example/jsf2/bo/BoSeasonStat.java" style="text-decoration:underline;">BoSeasonStat</a>
+<br/><br/>
+
 <b>pparam</b>
-Page Parameter (pparam) is a business-object representing the search options. We declare this object in <b>com.github.paginationspring.example.jsf2.bo.BoSeasonStatSearchParam</b>. This object extends <b>com.github.paginationspring.bo.BoPaginationParam</b> (POJO) and added 3 fields from our search options:
+Page Parameter (pparam) is a business-object representing the search options. We declare this object in <a href="https://github.com/paginationspring/pagination-example-jsf2/blob/master/src/main/java/com/github/paginationspring/example/jsf2/bo/BoSeasonStatSearchParam.java" style="text-decoration:underline;">BoSeasonStatSearchParam</a>. This object extends <b>com.github.paginationspring.bo.BoPaginationParam</b> (POJO) and added 3 fields from our search options:
 <pre class="prettyprint linenums">
 public class BoSeasonStatSearchParam extends BoPaginationParam {
     private String season;
@@ -328,7 +361,7 @@ public class BoSeasonStatSearchParam extends BoPaginationParam {
 pparam will keep value of search option in this pojo and use it in our pagination framework.
 
 <b>paginationResult</b>
-Pagination Result is a business-object representing results of our search. It contains one page of data (as seen by user on his current page), and it also contains some settings like record-per-page, default sorting order, etc. Each row of data (in our case, each player) is represented by declaring object com.github.paginationspring.example.jsf2.bo.BoSeasonStat. This object extends com.github.paginationspring.bo.BoPaginationResultRow (POJO) and added fields for display our search results:
+Pagination Result is a business-object representing results of our search. It contains one page of data (as seen by user on his current page), and it also contains some settings like record-per-page, default sorting order, etc. Each row of data (in our case, each player) is represented by declaring object <a href="https://github.com/paginationspring/pagination-example-jsf2/blob/master/src/main/java/com/github/paginationspring/example/jsf2/bo/BoSeasonStat.java" style="text-decoration:underline;">BoSeasonStat</a>. This object extends com.github.paginationspring.bo.BoPaginationResultRow (POJO) and added fields for display our search results:
 
 <pre class="prettyprint linenums">
 public class BoSeasonStat extends BoPaginationResultRow<Integer> {
@@ -362,8 +395,10 @@ public class BoSeasonStat extends BoPaginationResultRow<Integer> {
 
 Notice the type inference of &lt;Integer&gt;, this Integer represents the object type of the unique key of this row of data (i.e. nbaSeasonId).
 
-<h3>ManagedBean</h3>
+<h3 id="ps-ctrl">ManagedBean</h3>
 
+<a href="https://github.com/paginationspring/pagination-example-jsf2/blob/master/src/main/java/com/github/paginationspring/example/jsf2/controller/SeasonStatManagedBean.java" style="text-decoration:underline;">SeasonStatManagedBean</a>
+<br/><br/>
 ManagedBean will define settings of our pagination page, map requests URLs into a handler method and pass business logic to service layer. 
 
 <pre class="prettyprint linenums">
@@ -458,7 +493,9 @@ At last, inject our service bean:
     private SeasonStatService seasonStatService;
 </pre>
 
-<h3>Service</h3>
+<h3 id="ps-svc">Service</h3>
+<a href="https://github.com/paginationspring/pagination-example-jsf2/blob/master/src/main/java/com/github/paginationspring/example/jsf2/service/SeasonStatService.java" style="text-decoration:underline;">SeasonStatService</a>
+<br/><br/>
 Service bean serves two purposes: 1) map database raw data into our business object and 2) define column properties for result data.
 <br/><br/>
 First, we define our service bean with @Service annotation and extend a service base PaginationServiceAbstract as shown here:
@@ -468,7 +505,7 @@ First, we define our service bean with @Service annotation and extend a service 
 public class SeasonStatService extends PaginationServiceAbstract<BoSeasonStatSearchParam, BoSeasonStat, PgNbaSeason> {
 </pre>
 
-Type inference of <BoSeasonStatSearchParam, BoSeasonStat, PgNbaSeason> represent our page parameter, business object and data entity object respectively. Data Entiry PgNbaSeason is generated with Hibernate / JBoss Tools from database structure.
+Type inference of <BoSeasonStatSearchParam, BoSeasonStat, PgNbaSeason> represent our page parameter, business object and data entity object respectively. Database entity <a href="https://github.com/paginationspring/pagination-example-jsf2/blob/master/src/main/java/com/github/paginationspring/example/jsf2/entity/PgNbaSeason.java">PgNbaSeason</a> is generated with <a href="http://hibernate.org/tools/">Hibernate / JBoss Tools</a> from database structure.
 <br/><br/>
 To map database raw data into our business object, override assignDataToBo method:
 
@@ -620,7 +657,9 @@ public void setPaginationDao(SeasonStatDao seasonStatDao) {
 }
 </pre>
 
-<h3>Data Access Layer (DAO)</h3>
+<h3 id="ps-dao">Data Access Layer (DAO)</h3>
+<a href="https://github.com/paginationspring/pagination-example-jsf2/blob/master/src/main/java/com/github/paginationspring/example/jsf2/dao/SeasonStatDao.java" style="text-decoration:underline;">SeasonStatDao</a>
+<br/><br/>
 DAO bean load the raw data from database using JPA entity manager. First, we define our DAO with @Repository annotation and extends PaginationDaoDbEntityManagerAbstract<PgNbaSeason, BoSeasonStatSearchParam> from Pagination Framework:
 
 <pre class="prettyprint linenums">
@@ -677,7 +716,13 @@ public void setEntityManager(EntityManager entityManager) {
 
 In this example, we used JPA Entity Manager (PaginationDaoDbEntityManagerAbstract) for persistence management. There are 2 more options available in our Pagination Framework, one is PaginationDaoDbHibernateTemplateAbstract which uses spring hibernate template and the other is PaginationDaoLuceneAbstract which uses lucene index as datasource.
 
-<h3>Spring Framework Setup</h3>
+<h3 id="ps-spring">Spring Framework Setup</h3>
+<a href="https://github.com/paginationspring/pagination-example-jsf2/blob/master/src/main/webapp/WEB-INF/web.xml" style="text-decoration:underline;">web.xml</a>
+<br/><br/>
+<a href="https://github.com/paginationspring/pagination-example-jsf2/blob/master/src/main/webapp/WEB-INF/applicationContext.xml" style="text-decoration:underline;">applicationContext.xml</a>
+<br/><br/>
+<a href="https://github.com/paginationspring/pagination-example-jsf2/blob/master/src/main/webapp/WEB-INF/dispatcher-servlet.xml" style="text-decoration:underline;">dispatcher-servlet.xml</a>
+<br/><br/>
 To setup spring framework, we setup spring and JSF in web.xml as we normally would:
 <pre class="prettyprint linenums">
 &lt;listener&gt;
@@ -722,23 +767,23 @@ In faces-config.xml, define the following for view handler:
 &lt;/component&gt;
 </pre>
 
-<h3>Additional Features</h3>
+<h3 id="ps-feature">Additional Features</h3>
 Additional features can be enabled in pagination framework are:
 <ul>
-  <li>Search engine friendly URL - to make pagination links shorter and SEO friendly.</li>
-  <li>AJAX pagination - make pagination links update only part of our web page, without reloading the whole page.</li>
-  <li>Remember search result - recall previous search results after leaving for other pages.</li>
+  <li><a href="http://paginationspring.blogspot.hk/2014/02/feature-search-engine-friendly-url.html">Search engine friendly URL</a> - to make pagination links shorter and SEO friendly.</li>
+  <li><a href="http://paginationspring.blogspot.hk/2014/02/feature-ajax-pagination-with-spring.html">AJAX pagination</a> - make pagination links update only part of our web page, without reloading the whole page.</li>
+  <li><a href="http://paginationspring.blogspot.hk/2014/02/feature-remember-search-result.html">Remember search result</a> - recall previous search results after leaving for other pages.</li>
   <li>Override ORM Data Access by writing an implementation of Data Access of your choice (e.g. JDO, iBATIS SQL Maps, etc.)</li>
 </ul>
 See my other blog posts on <a href="http://paginationspring.blogspot.com" target="_blank">http://paginationspring.blogspot.com</a> for details.
 
-<h3>Running our example</h3>
+<h3 id="ps-run">Running our example</h3>
 
 Click "Download Zip" button on this page <a href="https://github.com/paginationspring/pagination-example-jsf2" target="_blank">https://github.com/paginationspring/pagination-example-jsf2</a>.
 <br/><br/>
-The content included full source code used in this example. Open command prompt and type run.bat (for window OS) or ./run.sh (for linux OS). Choose your application server and wait around 30 seconds for the server to startup. After server started, go to url http://localhost:8080/pagination-example-jsf2
+The content included full source code used in this example. Make sure you have <a href="http://maven.apache.org/">Maven</a> and <a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">JDK</a> installed. Open command prompt and type run.bat (for window OS) or ./run.sh (for linux OS). Choose your application server and wait around 30 seconds for the server to startup. After server started, go to url http://localhost:8080/pagination-example-jsf2
 
-<h3>Help improve this document</h3>
+<h3 id="ps-join">Help improve this document</h3>
 You can help improve this document by "fork" this repository <a href="https://github.com/paginationspring/pagination/tree/master/doc" target="_blank">https://github.com/paginationspring/pagination/tree/master/doc</a>.
 <br/><br/>
 After making changes to this document, you can submit a pull request and I will change this document accordingly.
