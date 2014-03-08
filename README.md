@@ -1,3 +1,4 @@
+[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/f4913924caa8985e214a54fc8eb3f420 "githalytics.com")](http://githalytics.com/paginationspring/pagination)
 Introduction
 ============
 This is an implementation of Pagination with Spring Framework that will provide full features of pagination, search option and column sorting.
