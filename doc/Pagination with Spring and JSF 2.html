@@ -69,7 +69,7 @@ START of blog post
 </div>
 <h3 id="ps-intro">
 Introduction</h3>
-In a web application, Pagination, or Page Navigation, is a technique often used to display a large set of data. For a large hundred or thousand or even million of records, it would cause large performance problem to return all of that data in a single page. Pagination is used to present data to user one page at a time, typically 25 to 100 records per page. Moreover, keyword search, advance search option and column sorting are features often needed together with Pagination.<br />
+In a web application, Pagination, or Page Navigation, is a technique often used to display a large set of data. For a large hundred or thousand or even million of records, it would cause large performance problem to return all of that data in a single page. Pagination is used to present data to user one page at a time, typically 25 to 100 records per page. Moreover, keyword search, advance search option and column sorting are features often needed together with Pagination. Spring Framework <a href="http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/beans/support/PagedListHolder.html" title="PagedListHolder" target="_blank">org.springframework.beans.support.PagedListHolder</a> provided some support to separate objects into pages but it is NOT a complete pagination solution.<br />
 <br />
 This article will focus on an implementation of <a href="https://github.com/paginationspring/pagination" title="Pagination, Page Navigation, Spring Framework, JSF, JSP, Hibernate, JPA">Pagination Framework</a> based on <a href="http://projects.spring.io/spring-framework/">Spring Framework</a> that will provide full features of pagination, search option and column sorting.
 <br/><br/>
@@ -783,10 +783,10 @@ Click "Download Zip" button on this page <a href="https://github.com/paginations
 <br/><br/>
 The content included full source code used in this example. Make sure you have <a href="http://maven.apache.org/">Maven</a> and <a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">JDK</a> installed. Open command prompt and type run.bat (for window OS) or ./run.sh (for linux OS). Choose your application server and wait around 30 seconds for the server to startup. After server started, go to url http://localhost:8080/pagination-example-jsf2
 
-<h3 id="ps-join">Help improve this document</h3>
-You can help improve this document by "fork" this repository <a href="https://github.com/paginationspring/pagination/tree/master/doc" target="_blank">https://github.com/paginationspring/pagination/tree/master/doc</a>.
+<h3 id="ps-join">Help improve this project</h3>
+You can help improve this project by "fork" pagination project <b>https://github.com/paginationspring/pagination.git</b> and tag library project <b>https://github.com/paginationspring/pagination-taglibs.git</b>.
 <br/><br/>
-After making changes to this document, you can submit a pull request and I will change this document accordingly.
+After making changes to this project, you can submit a pull request and I will change this project accordingly.
 <br/><br/>
 To report bugs, please use <a href="https://github.com/paginationspring/pagination/issues" target="_blank">https://github.com/paginationspring/pagination/issues</a>.
 
