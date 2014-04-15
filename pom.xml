@@ -153,7 +153,6 @@
                         <version>1.1</version>
                         <configuration>
                             <keyname>BDA1DB82</keyname>
-                            <homedir>C:\Users\sllau\AppData\Roaming\gnupg</homedir>
                         </configuration>
                         <executions>
                             <execution>
